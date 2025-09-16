@@ -85,6 +85,9 @@ dependencies {
     implementation(libs.geofire.android.common)
     implementation(libs.firebase.geofire.android.common)
 
+    implementation(libs.coil.network.okhttp)
+    implementation(libs.coil.compose)
+
     implementation(libs.maps.compose)
     implementation(libs.play.services.maps)
     implementation(libs.play.services.location)

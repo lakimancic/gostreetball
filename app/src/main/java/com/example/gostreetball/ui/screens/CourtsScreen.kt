@@ -55,8 +55,6 @@ fun CourtsScreen(
     val courts by viewModel.filteredCourts.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.resetFilters()
-        viewModel.setSearchQuery("")
         viewModel.fetchCourts()
     }
 

@@ -5,7 +5,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.net.Uri
@@ -25,16 +24,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.createBitmap
+import com.example.gostreetball.R
+import com.example.gostreetball.ui.theme.OrangeMild
 import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
-import androidx.core.graphics.toColorInt
-import com.example.gostreetball.R
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import androidx.core.graphics.createBitmap
-import com.example.gostreetball.ui.theme.Orange
-import com.example.gostreetball.ui.theme.OrangeMild
 import kotlin.math.roundToInt
 
 @Composable

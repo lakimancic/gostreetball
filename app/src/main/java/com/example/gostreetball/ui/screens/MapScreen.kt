@@ -96,8 +96,6 @@ fun MapScreen(
     }
 
     LaunchedEffect(Unit) {
-        courtsViewModel.resetFilters()
-        courtsViewModel.setSearchQuery("")
         courtsViewModel.fetchCourts()
     }
 
