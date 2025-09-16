@@ -9,5 +9,6 @@ var WhiteOrange = Color(0xFFFFF2E8)
 var LightOrange = Color(0xFFFFDEC5)
 var BlackOrange = Color(0xFF483D35)
 var DarkOrange = Color(0xFF734C31)
+var YellowMild = Color(0xFFFFEEC4)
 
 var DarkGray = Color(0xFF2F2F2F)

@@ -1,5 +1,7 @@
 package com.example.gostreetball.data.repo
 
+import com.firebase.geofire.GeoFireUtils
+import com.firebase.geofire.GeoLocation
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -15,11 +17,13 @@ class UserRepository @Inject constructor(
         return runCatching {
             val currentUser = auth.currentUser ?: throw Exception("No current user")
             val currentTime = System.currentTimeMillis()
+            val geoHash = GeoFireUtils.getGeoHashForLocation(GeoLocation(location.latitude, location.longitude))
 
             val userRef = firestore.collection("users").document(currentUser.uid)
             val locationData = mapOf(
                 "lastLocation" to GeoPoint(location.latitude, location.longitude),
-                "lastLocationUpdate" to currentTime
+                "lastLocationUpdate" to currentTime,
+                "lastGeoHash" to geoHash
             )
 
             userRef.update(locationData).await()

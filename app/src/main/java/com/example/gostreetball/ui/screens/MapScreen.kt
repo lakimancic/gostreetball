@@ -2,6 +2,8 @@ package com.example.gostreetball.ui.screens
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,28 +33,42 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.gostreetball.ui.CourtsViewModel
 import com.example.gostreetball.ui.MapViewModel
+import com.example.gostreetball.utils.createCourtMarkerBitmap
+import com.example.gostreetball.utils.createCourtMarkerIcon
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 
 @Composable
 fun MapScreen(
     modifier: Modifier = Modifier,
     mapViewModel: MapViewModel = hiltViewModel(),
+    courtsViewModel: CourtsViewModel = hiltViewModel(),
     navigateToAdd: () -> Unit,
+    navigateToFilter: () -> Unit,
     targetLocation: LatLng? = null
 ) {
+    val context = LocalContext.current
     val currentLocation by mapViewModel.currentLocation.collectAsState()
     val isLocationAvailable by mapViewModel.isLocationAvailable.collectAsState()
     val locationPermissionGranted by mapViewModel.locationPermissionGranted.collectAsState()
+    val courtsState by courtsViewModel.uiState.collectAsState()
+    val markerIcon = remember { createCourtMarkerIcon(context) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -72,19 +88,17 @@ fun MapScreen(
         position = CameraPosition.fromLatLngZoom(initialLocation, 15f)
     }
 
-//    LaunchedEffect(currentLocation) {
-//        if (targetLocation == null) {
-//            currentLocation?.let { location ->
-//                cameraPositionState.position = CameraPosition.fromLatLngZoom(location, cameraPositionState.position.zoom)
-//            }
-//        }
-//    }
-
     LaunchedEffect(targetLocation) {
         targetLocation?.let { location ->
             cameraPositionState.position =
                 CameraPosition.fromLatLngZoom(location, 16f)
         }
+    }
+
+    LaunchedEffect(Unit) {
+        courtsViewModel.resetFilters()
+        courtsViewModel.setSearchQuery("")
+        courtsViewModel.fetchCourts()
     }
 
     Column(modifier = modifier.fillMaxSize()) {
@@ -100,16 +114,16 @@ fun MapScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
-                    value = "",
-                    onValueChange = { },
+                    value = courtsState.searchQuery,
+                    onValueChange = { courtsViewModel.setSearchQuery(it) },
                     placeholder = { Text("Search courts...") },
                     leadingIcon = {
                         Icon(Icons.Default.Search, contentDescription = "Search")
                     },
                     trailingIcon = {
-                        if (true) {
+                        if (courtsState.searchQuery.isNotEmpty()) {
                             IconButton(
-                                onClick = { }
+                                onClick = { courtsViewModel.setSearchQuery("") }
                             ) {
                                 Icon(Icons.Default.Clear, contentDescription = "Clear")
                             }
@@ -140,7 +154,20 @@ fun MapScreen(
                     myLocationButtonEnabled = true,
                     zoomControlsEnabled = true
                 )
-            )
+            ) {
+                courtsState.courts.forEach { court ->
+                    court.location?.let { geo ->
+                        Marker(
+                            state = MarkerState(
+                                position = LatLng(geo.latitude, geo.longitude)
+                            ),
+                            title = court.name,
+                            icon = markerIcon,
+                            snippet = "Type: ${court.type}, ${court.boardType} Board"
+                        )
+                    }
+                }
+            }
 
             if (locationPermissionGranted) {
                 FloatingActionButton(

@@ -45,11 +45,14 @@ class LocationService : Service() {
     companion object {
         private const val NOTIFICATION_ID = 1
         private const val NEARBY_NOTIFICATION_ID = 1001
+
+        var isRunning = false
     }
 
     override fun onCreate() {
         super.onCreate()
         notifier = NotificationUtils(this)
+        isRunning = true
 
         serviceScope.launch {
             preferences.checkRadiusMeters.collectLatest {
@@ -115,6 +118,7 @@ class LocationService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        isRunning = false
         handler.removeCallbacks(runnable)
         serviceScope.cancel()
         Log.d("LocationService", "Service stopped")

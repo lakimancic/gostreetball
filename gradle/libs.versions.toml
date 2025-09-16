@@ -2,6 +2,7 @@
 agp = "8.10.1"
 datastorePreferences = "1.1.7"
 firebaseBom = "34.1.0"
+geofireAndroidCommon = "3.2.0"
 hiltAndroid = "2.57"
 hiltCompiler = "2.57"
 hiltNavigationCompose = "1.2.0"
@@ -40,8 +41,11 @@ firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "fir
 firebase-database-ktx = { module = "com.google.firebase:firebase-database-ktx" }
 firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
 firebase-firestore-ktx = { module = "com.google.firebase:firebase-firestore-ktx" }
+firebase-geofire-android-common = { module = "com.firebase:geofire-android-common", version.ref = "geofireAndroidCommon" }
 firebase-messaging-ktx = { module = "com.google.firebase:firebase-messaging-ktx" }
+firebase-storage = { module = "com.google.firebase:firebase-storage" }
 firebase-storage-ktx = { module = "com.google.firebase:firebase-storage-ktx" }
+geofire-android-common = { module = "com.firebase:geofire-android-common" }
 google-firebase-bom = { module = "com.google.firebase:firebase-bom" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltCompiler" }

@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.SportsBasketball
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -57,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.gostreetball.data.model.BoardType
 import com.example.gostreetball.data.model.CourtType
 import com.example.gostreetball.data.repo.CourtRepository
 import com.example.gostreetball.ui.AddCourtViewModel
@@ -84,6 +86,7 @@ fun AddCourtScreen(
     }
 
     var expanded by remember { mutableStateOf(false) }
+    var boardExpanded by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
@@ -92,6 +95,15 @@ fun AddCourtScreen(
         }
     }
 
+    if (state.isLoading) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+        return
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -137,7 +149,6 @@ fun AddCourtScreen(
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(250.dp)
-                            .clip(CircleShape)
                     )
                 } else {
                     Icon(
@@ -219,6 +230,44 @@ fun AddCourtScreen(
                             onClick = {
                                 viewModel.updateType(type)
                                 expanded = false
+                            },
+                            modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.height(30.dp))
+            ExposedDropdownMenuBox(
+                expanded = boardExpanded,
+                onExpandedChange = { boardExpanded = !boardExpanded },
+            ) {
+                OutlinedTextField(
+                    value = state.boardType?.toString()?.lowercase()?.replaceFirstChar { it.uppercase() } ?: "Select board type",
+                    onValueChange = { },
+                    readOnly = true,
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = boardExpanded)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor()
+                        .focusRequester(focusRequester)
+                )
+                HorizontalDivider()
+                ExposedDropdownMenu(
+                    expanded = boardExpanded,
+                    onDismissRequest = { boardExpanded = false },
+                    modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)
+                ) {
+                    BoardType.entries.forEach { type ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    type.name.lowercase().replaceFirstChar { it.uppercase() })
+                            },
+                            onClick = {
+                                viewModel.updateBoardType(type)
+                                boardExpanded = false
                             },
                             modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)
                         )

@@ -1,6 +1,7 @@
 package com.example.gostreetball.di
 
 import android.content.Context
+import android.location.Geocoder
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
@@ -13,11 +14,13 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import java.util.Locale
 import javax.inject.Singleton
 
 @Module
@@ -28,6 +31,15 @@ object AppModule {
 
     @Provides
     fun provideFirebaseFireStore(): FirebaseFirestore = FirebaseFirestore.getInstance()
+
+    @Provides
+    fun provideFirebaseStorage(): FirebaseStorage = FirebaseStorage.getInstance()
+
+    @Provides
+    @Singleton
+    fun provideGeocoder(@ApplicationContext context: Context): Geocoder {
+        return Geocoder(context, Locale.getDefault())
+    }
 
     @Provides
     @Singleton
@@ -49,9 +61,10 @@ object AppModule {
     @Singleton
     fun provideAuthRepository(
         firebaseAuth: FirebaseAuth,
-        firebaseFireStore: FirebaseFirestore
+        firebaseFireStore: FirebaseFirestore,
+        firebaseStorage: FirebaseStorage
     ): AuthRepository {
-        return AuthRepository(firebaseAuth, firebaseFireStore)
+        return AuthRepository(firebaseAuth, firebaseFireStore, firebaseStorage)
     }
 
     @Provides
@@ -67,9 +80,11 @@ object AppModule {
     @Singleton
     fun provideCourtRepository(
         firebaseAuth: FirebaseAuth,
-        firebaseFireStore: FirebaseFirestore
+        firebaseFireStore: FirebaseFirestore,
+        firebaseStorage: FirebaseStorage,
+        geocoder: Geocoder
     ): CourtRepository {
-        return CourtRepository(firebaseAuth, firebaseFireStore)
+        return CourtRepository(firebaseAuth, firebaseFireStore, firebaseStorage, geocoder)
     }
 
     @Provides

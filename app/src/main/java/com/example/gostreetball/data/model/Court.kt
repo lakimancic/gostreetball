@@ -8,13 +8,24 @@ enum class CourtType {
     SYNTHETIC
 }
 
+enum class BoardType {
+    GLASS,
+    WOOD,
+    PLASTIC
+}
+
 data class Court (
     val id: String = "",
     val name: String = "",
     val type: CourtType = CourtType.ASPHALT,
+    val boardType: BoardType = BoardType.WOOD,
     val location: GeoPoint? = null,
+    val geoHash: String? = null,
     val rating: Double = 0.0,
-    val reviews: List<Review> = emptyList(),
-    val games: List<Game> = emptyList(),
-    val imageUrl: String = ""
+    val city: String = "",
+    val country: String = "",
+    val reviewCount: Int = 0,
+    val gameCount: Int = 0,
+    val imageUrl: String = "",
+    val coefficient: Double = 0.0,
 )

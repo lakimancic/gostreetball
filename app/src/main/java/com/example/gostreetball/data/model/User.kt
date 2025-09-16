@@ -14,10 +14,13 @@ data class User(
     @ServerTimestamp
     val createdAt: Date? = null,
     val totalPoints: Long = 300L,
-    val monthlyPoints: Map<String, Long> = emptyMap(),
     val lastLocation: GeoPoint? = null,
+    val lastGeoHash: String? = null,
     val lastLocationUpdate: Long = 0L,
+    val currentCourt: String? = null,
+    val gamesPlayer: Int = 0,
 
     // as judge
-    val reviews: List<Review> = emptyList(),
+    val reviewCount: Int = 0,
+    val rating: Double = 0.0,
 )

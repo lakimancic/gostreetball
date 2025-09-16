@@ -155,6 +155,11 @@ class RegisterViewModel @Inject constructor(
     }
 
     fun createAccount() {
+        if (uiState.value.registerData.profileImage == null) {
+            _uiState.update { it.copy(errorMessage = "Profile picture is required") }
+            return
+        }
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = "") }
 

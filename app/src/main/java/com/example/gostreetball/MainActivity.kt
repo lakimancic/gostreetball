@@ -12,19 +12,23 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.example.gostreetball.ui.screens.AddCourtScreen
+import com.example.gostreetball.ui.screens.FilterScreen
 import com.example.gostreetball.ui.screens.MainScreen
 import com.example.gostreetball.ui.screens.auth.LoginScreen
 import com.example.gostreetball.ui.screens.auth.RegistrationScreen
 import com.example.gostreetball.ui.screens.auth.WelcomeScreen
 import com.example.gostreetball.ui.theme.GoStreetBallTheme
+import com.google.android.gms.maps.MapsInitializer
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        MapsInitializer.initialize(applicationContext)
         enableEdgeToEdge()
         setContent {
             GoStreetBallTheme {
@@ -96,6 +100,12 @@ fun GoStreetBallApp(
                 navigateBack = { navController.popBackStack(Screens.MainScreen.name, false) },
             )
         }
+        composable(Screens.FilterScreen.name) {
+            FilterScreen(
+                modifier = modifier,
+                navController = navController
+            )
+        }
     }
 }
 
@@ -104,5 +114,6 @@ enum class Screens {
     LoginScreen,
     RegisterScreen,
     MainScreen,
-    AddCourtScreen
+    AddCourtScreen,
+    FilterScreen
 }
