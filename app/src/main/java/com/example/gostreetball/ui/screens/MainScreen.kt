@@ -150,16 +150,25 @@ fun MainScreen(
                 modifier = modifier.padding(innerPadding),
                 navigateToAdd = { navHostController.navigate(Screens.AddCourtScreen.name) },
                 navigateToFilter = { navHostController.navigate(Screens.FilterScreen.name) },
+                navigateToCourt = { navHostController.navigate("${Screens.CourtScreen}/$it")},
                 courtsViewModel = courtsViewModel
             )
             1 -> CourtsScreen(
                 modifier = modifier.padding(innerPadding),
                 navigateToFilter = { navHostController.navigate(Screens.FilterScreen.name) },
+                navigateToCourt = { navHostController.navigate("${Screens.CourtScreen}/$it")},
                 viewModel = courtsViewModel
             )
             2 -> HomeScreen()
-            3 -> ScoresScreen()
-            4 -> ProfileScreen()
+            3 -> ScoresScreen(
+                modifier = modifier.padding(innerPadding),
+                navigateToUser = { navHostController.navigate("${Screens.UserScreen}/$it")}
+            )
+            4 -> ProfileScreen(
+                modifier = modifier.padding(innerPadding),
+                navigateToWelcome = { navHostController.popBackStack(Screens.WelcomeScreen.name, false) },
+                navigateToUser = { navHostController.navigate("${Screens.UserScreen}/$it")}
+            )
         }
     }
 }

@@ -4,6 +4,7 @@ import android.location.Geocoder
 import com.example.gostreetball.data.model.BoardType
 import com.example.gostreetball.data.model.CourtType
 import com.example.gostreetball.data.model.Court
+import com.example.gostreetball.data.model.Review
 import com.firebase.geofire.GeoFireUtils
 import com.firebase.geofire.GeoLocation
 import com.google.firebase.auth.FirebaseAuth
@@ -110,8 +111,9 @@ class CourtRepository @Inject constructor(
         }
     }
 
-    suspend fun getCourt(courtId: String): Result<Court> {
+    suspend fun getCourt(courtId: String): Result<Pair<Court, Boolean>> {
         return runCatching {
+            val authUserId = auth.currentUser?.uid
             val docSnapshot = firestore.collection("courts")
                 .document(courtId)
                 .get()
@@ -121,7 +123,106 @@ class CourtRepository @Inject constructor(
                 ?.copy(id = docSnapshot.id)
                 ?: throw Exception("Court not found")
 
-            court
+            val hasReviewed = if (authUserId != null) {
+                val reviewQuery = firestore.collection("reviews")
+                    .whereEqualTo("forCourt", true)
+                    .whereEqualTo("itemId", courtId)
+                    .whereEqualTo("userId", authUserId)
+                    .get()
+                    .await()
+
+                !reviewQuery.isEmpty
+            } else {
+                false
+            }
+
+            court to hasReviewed
+        }
+    }
+
+    suspend fun addReview(
+        courtId: String,
+        stars: Int,
+        text: String
+    ): Result<Unit> {
+        return runCatching {
+            val courtRef = firestore.collection("courts").document(courtId)
+            val courtSnapshot = courtRef.get().await()
+            val userId = auth.currentUser?.uid
+
+            if (!courtSnapshot.exists()) throw Exception("Court not found")
+            if (userId == null) throw Exception("Current User not found")
+
+            val court = courtSnapshot.toObject(Court::class.java) ?: throw Exception("Court data invalid")
+
+            val reviewsRef = firestore.collection("reviews")
+            val existingReviewQuery = reviewsRef
+                .whereEqualTo("itemId", courtId)
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("forCourt", true)
+                .get()
+                .await()
+
+            val oldStars = if (!existingReviewQuery.isEmpty) {
+                val doc = existingReviewQuery.documents.first()
+                doc.reference.update(
+                    mapOf(
+                        "stars" to stars,
+                        "text" to text
+                    )
+                ).await()
+                (doc.getLong("stars") ?: 0L).toInt()
+            } else {
+                val review = Review(
+                    stars = stars,
+                    text = text,
+                    isForCourt = true,
+                    userId = userId,
+                    itemId = courtId
+                )
+                reviewsRef.add(review).await()
+                null
+            }
+
+            val newReviewCount = if (oldStars == null) court.reviewCount + 1 else court.reviewCount
+            val totalStars = court.rating * court.reviewCount - (oldStars ?: 0) + stars
+            val newRating = if (newReviewCount > 0) totalStars / newReviewCount else 0.0
+            val newCoefficient = 10.0 + (newRating - 1) * 5.0
+
+            courtRef.update(
+                mapOf(
+                    "reviewCount" to newReviewCount,
+                    "rating" to newRating,
+                    "coefficient" to newCoefficient
+                )
+            ).await()
+        }
+    }
+
+    suspend fun getReviews(courtId: String): Result<List<Review>> {
+        return runCatching {
+            val snapshot = firestore.collection("reviews")
+                .whereEqualTo("itemId", courtId)
+                .whereEqualTo("forCourt", true)
+                .get()
+                .await()
+
+            snapshot.documents.mapNotNull { doc ->
+                doc.toObject(Review::class.java)
+            }
+        }
+    }
+
+    suspend fun getReview(itemId: String): Result<Review?> {
+        return runCatching {
+            val snapshot = firestore.collection("reviews")
+                .whereEqualTo("itemId", itemId)
+                .whereEqualTo("forCourt", true)
+                .limit(1)
+                .get()
+                .await()
+
+            snapshot.documents.firstOrNull()?.toObject(Review::class.java)
         }
     }
 

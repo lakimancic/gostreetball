@@ -13,6 +13,7 @@ import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.gostreetball.data.local.AppPreferences
+import com.example.gostreetball.data.repo.CourtRepository
 import com.example.gostreetball.data.repo.UserRepository
 import com.example.gostreetball.utils.NotificationUtils
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -39,6 +40,7 @@ class LocationService : Service() {
     private var checkRadius: Double = 100.0
 
     @Inject lateinit var userRepository: UserRepository
+    @Inject lateinit var courtRepository: CourtRepository
     @Inject lateinit var fusedLocationClient: FusedLocationProviderClient
     @Inject lateinit var preferences: AppPreferences
 

@@ -49,6 +49,7 @@ import com.example.gostreetball.ui.theme.GoStreetBallTheme
 fun CourtsScreen(
     modifier: Modifier = Modifier,
     navigateToFilter: () -> Unit,
+    navigateToCourt: (String) -> Unit,
     viewModel: CourtsViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -124,7 +125,7 @@ fun CourtsScreen(
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             ) {
                 items(courts) { court ->
-                    CourtItem(modifier, court)
+                    CourtItem(modifier, court, navigateToCourt)
                     HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                 }
             }
@@ -133,12 +134,12 @@ fun CourtsScreen(
 }
 
 @Composable
-fun CourtItem(modifier: Modifier, court: Court) {
+fun CourtItem(modifier: Modifier, court: Court, onClick: (String) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clickable { /* handle click */ },
+            .clickable { onClick(court.id) },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
@@ -183,7 +184,8 @@ fun CourtsScreenPreview() {
         CourtsScreen(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background),
-            navigateToFilter = {}
+            navigateToFilter = {},
+            navigateToCourt = {}
         )
     }
 }

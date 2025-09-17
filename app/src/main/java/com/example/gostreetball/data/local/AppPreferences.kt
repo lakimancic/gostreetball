@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 enum class ThemeEnum {
-    LIGHT, DARK, SYSTEM
+    LIGHT, DARK
 }
 
 class AppPreferences @Inject constructor(
@@ -35,7 +35,7 @@ class AppPreferences @Inject constructor(
     }
 
     val selectedTheme: Flow<ThemeEnum> = dataStore.data.map { preferences ->
-        val theme = preferences[THEME_KEY] ?: ThemeEnum.SYSTEM.name
+        val theme = preferences[THEME_KEY] ?: ThemeEnum.LIGHT.name
         ThemeEnum.valueOf(theme)
     }
 

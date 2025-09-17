@@ -61,6 +61,7 @@ fun MapScreen(
     courtsViewModel: CourtsViewModel = hiltViewModel(),
     navigateToAdd: () -> Unit,
     navigateToFilter: () -> Unit,
+    navigateToCourt: (String) -> Unit,
     targetLocation: LatLng? = null
 ) {
     val context = LocalContext.current
@@ -69,6 +70,7 @@ fun MapScreen(
     val locationPermissionGranted by mapViewModel.locationPermissionGranted.collectAsState()
     val courtsState by courtsViewModel.uiState.collectAsState()
     val markerIcon = remember { createCourtMarkerIcon(context) }
+    val courts by courtsViewModel.filteredCourts.collectAsState()
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -134,7 +136,7 @@ fun MapScreen(
                 Spacer(modifier = Modifier.width(8.dp))
 
                 IconButton(
-                    onClick = { }
+                    onClick = { navigateToFilter() }
                 ) {
                     Icon(Icons.Default.FilterAlt, contentDescription = "Filter")
                 }
@@ -153,7 +155,7 @@ fun MapScreen(
                     zoomControlsEnabled = true
                 )
             ) {
-                courtsState.courts.forEach { court ->
+                courts.forEach { court ->
                     court.location?.let { geo ->
                         Marker(
                             state = MarkerState(
@@ -161,7 +163,10 @@ fun MapScreen(
                             ),
                             title = court.name,
                             icon = markerIcon,
-                            snippet = "Type: ${court.type}, ${court.boardType} Board"
+                            snippet = "Type: ${court.type}, ${court.boardType} Board",
+                            onInfoWindowClick = {
+                                navigateToCourt(court.id)
+                            }
                         )
                     }
                 }

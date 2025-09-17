@@ -3,6 +3,7 @@ package com.example.gostreetball.ui.screens
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,7 +50,8 @@ import com.example.gostreetball.ui.theme.GoStreetBallTheme
 @Composable
 fun ScoresScreen(
     modifier: Modifier = Modifier,
-    viewModel: ScoresViewModel = hiltViewModel()
+    viewModel: ScoresViewModel = hiltViewModel(),
+    navigateToUser: (String) -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -73,19 +75,20 @@ fun ScoresScreen(
             modifier = Modifier.fillMaxSize()
         ) {
             itemsIndexed(state.players) { index, user ->
-                ScoreItem(user = user, rank = index + 1)
+                ScoreItem(user = user, rank = index + 1, navigateToUser = navigateToUser)
             }
         }
     }
 }
 
 @Composable
-fun ScoreItem(user: User, rank: Int) {
+fun ScoreItem(user: User, rank: Int, navigateToUser: (String) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
-            .padding(8.dp),
+            .padding(8.dp)
+            .clickable { navigateToUser(user.uid) },
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (rank in 1..3) {
@@ -169,7 +172,8 @@ fun ScoresScreenPreview() {
     GoStreetBallTheme {
         ScoresScreen(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.background)
+                .background(MaterialTheme.colorScheme.background),
+            navigateToUser = {}
         )
     }
 }

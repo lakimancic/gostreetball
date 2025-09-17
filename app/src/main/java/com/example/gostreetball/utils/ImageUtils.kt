@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
@@ -25,10 +26,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
+import coil3.ImageLoader
+import coil3.request.ImageRequest
+import coil3.request.SuccessResult
+import coil3.request.allowHardware
+import coil3.toBitmap
 import com.example.gostreetball.R
 import com.example.gostreetball.ui.theme.OrangeMild
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
@@ -129,6 +137,27 @@ fun createCourtMarkerIcon(context: Context): BitmapDescriptor {
         BitmapDescriptorFactory.fromBitmap(bitmap)
     } catch (e: Exception) {
         BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)
+    }
+}
+
+suspend fun loadBitmapFromUrl(context: Context, url: String): Bitmap? {
+    val imageLoader = ImageLoader(context)
+    val request = ImageRequest.Builder(context)
+        .data(url)
+        .allowHardware(false)
+        .build()
+
+    val result = imageLoader.execute(request)
+    return if (result is SuccessResult) {
+        result.image.toBitmap()
+    } else {
+        null
+    }
+}
+
+suspend fun loadImageBitmapFromUrl(context: Context, url: String): ImageBitmap? {
+    return withContext(Dispatchers.IO) {
+        loadBitmapFromUrl(context, url)?.asImageBitmap()
     }
 }
 

@@ -7,31 +7,51 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.gostreetball.data.local.AppPreferences
+import com.example.gostreetball.data.local.ThemeEnum
 import com.example.gostreetball.ui.screens.AddCourtScreen
+import com.example.gostreetball.ui.screens.AddReviewScreen
+import com.example.gostreetball.ui.screens.CourtScreen
 import com.example.gostreetball.ui.screens.FilterScreen
 import com.example.gostreetball.ui.screens.MainScreen
+import com.example.gostreetball.ui.screens.ReviewsScreen
+import com.example.gostreetball.ui.screens.UserScreen
 import com.example.gostreetball.ui.screens.auth.LoginScreen
 import com.example.gostreetball.ui.screens.auth.RegistrationScreen
 import com.example.gostreetball.ui.screens.auth.WelcomeScreen
 import com.example.gostreetball.ui.theme.GoStreetBallTheme
 import com.google.android.gms.maps.MapsInitializer
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject
+    lateinit var appPreferences: AppPreferences
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         MapsInitializer.initialize(applicationContext)
         enableEdgeToEdge()
         setContent {
-            GoStreetBallTheme {
+            val selectedTheme by appPreferences.selectedTheme.collectAsState(initial = ThemeEnum.LIGHT)
+
+            GoStreetBallTheme(
+                darkTheme = selectedTheme == ThemeEnum.DARK
+            ) {
                 GoStreetBallApp(
                     Modifier
                         .fillMaxSize()
@@ -106,6 +126,62 @@ fun GoStreetBallApp(
                 navController = navController
             )
         }
+        composable(
+            route = "${Screens.CourtScreen}/{courtId}",
+            arguments = listOf(navArgument("courtId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val courtId = backStackEntry.arguments?.getString("courtId") ?: ""
+            CourtScreen(
+                courtId = courtId,
+                navigateBack = { navController.popBackStack() },
+                navigateToReview = { navController.navigate("${Screens.AddReviewScreen.name}/$courtId/${true}") },
+                navigateToReviews = { navController.navigate("${Screens.ReviewsScreen.name}/$courtId/${true}") }
+            )
+        }
+        composable(
+            route = "${Screens.UserScreen}/{userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId") ?: ""
+            UserScreen(
+                userId = userId,
+                navigateBack = { navController.popBackStack() },
+                navigateToReview = { navController.navigate("${Screens.AddReviewScreen.name}/$userId/${false}")},
+                navigateToReviews = { navController.navigate("${Screens.ReviewsScreen.name}/$userId/${false}") }
+            )
+        }
+        composable(
+            route = "${Screens.AddReviewScreen.name}/{itemId}/{isForCourt}",
+            arguments = listOf(
+                navArgument("itemId") { type = NavType.StringType },
+                navArgument("isForCourt") { type = NavType.BoolType }
+            )
+        ) { backStackEntry ->
+            val itemId = backStackEntry.arguments?.getString("itemId") ?: ""
+            val isForCourt = backStackEntry.arguments?.getBoolean("isForCourt") ?: true
+
+            AddReviewScreen(
+                itemId = itemId,
+                isForCourt = isForCourt,
+                navigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = "${Screens.ReviewsScreen.name}/{itemId}/{isForCourt}",
+            arguments = listOf(
+                navArgument("itemId") { type = NavType.StringType },
+                navArgument("isForCourt") { type = NavType.BoolType }
+            )
+        ) { backStackEntry ->
+            val itemId = backStackEntry.arguments?.getString("itemId") ?: ""
+            val isForCourt = backStackEntry.arguments?.getBoolean("isForCourt") ?: true
+
+            ReviewsScreen(
+                itemId = itemId,
+                isForCourt = isForCourt,
+                navigateBack = { navController.popBackStack() }
+            )
+        }
     }
 }
 
@@ -115,5 +191,9 @@ enum class Screens {
     RegisterScreen,
     MainScreen,
     AddCourtScreen,
-    FilterScreen
+    FilterScreen,
+    CourtScreen,
+    UserScreen,
+    AddReviewScreen,
+    ReviewsScreen
 }
