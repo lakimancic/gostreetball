@@ -102,7 +102,7 @@ class UserRepository @Inject constructor(
                     val userLocation = user?.lastLocation
                     val lastUpdate = user?.lastLocationUpdate ?: 0L
 
-                    if (user != null && userLocation != null && (currentTime - lastUpdate) <= fiveMinutesMillis) {
+                    if (user != null && userLocation != null && user.uid != auth.currentUser?.uid && (currentTime - lastUpdate) <= fiveMinutesMillis) {
                         val distance = GeoFireUtils.getDistanceBetween(
                             GeoLocation(lat, lng),
                             GeoLocation(userLocation.latitude, userLocation.longitude)
@@ -115,6 +115,29 @@ class UserRepository @Inject constructor(
             }
 
             matchingUsers
+        }
+    }
+
+    suspend fun getCurrentUser(): Result<User> = runCatching {
+        val firebaseUser = auth.currentUser ?: throw Exception("No logged-in user found")
+        val userRef = firestore.collection("users").document(firebaseUser.uid)
+        val snapshot = userRef.get().await()
+        if (!snapshot.exists()) throw Exception("User document does not exist")
+        snapshot.toObject(User::class.java)?.copy(uid = snapshot.id)
+            ?: throw Exception("Failed to parse user data")
+    }
+
+    suspend fun clearCurrentUserCourtIfInvalid(activeCourtIds: Set<String>): Result<Unit> {
+        return runCatching {
+            val firebaseUser = auth.currentUser ?: throw Exception("No logged-in user")
+            val userRef = firestore.collection("users").document(firebaseUser.uid)
+
+            val snapshot = userRef.get().await()
+            val currentCourt = snapshot.getString("currentCourt")
+
+            if (!currentCourt.isNullOrEmpty() && currentCourt !in activeCourtIds) {
+                userRef.update("currentCourt", null).await()
+            }
         }
     }
 
@@ -258,6 +281,43 @@ class UserRepository @Inject constructor(
             snapshot.documents.mapNotNull { doc ->
                 doc.toObject(Review::class.java)
             }
+        }
+    }
+
+    suspend fun getActiveUsersInCourt(courtId: String): Result<List<User>> = runCatching {
+        val currentUser = auth.currentUser ?: throw Exception("Not logged in")
+        val fiveMinutesAgo = System.currentTimeMillis() - 5 * 60 * 1000
+
+        val snapshot = firestore.collection("users")
+            .whereEqualTo("currentCourt", courtId)
+            .whereGreaterThanOrEqualTo("lastLocationUpdate", fiveMinutesAgo)
+            .get()
+            .await()
+
+        snapshot.documents.mapNotNull { doc ->
+            doc.toObject(User::class.java)?.takeIf { it.uid != currentUser.uid }
+        }
+    }
+
+    suspend fun joinCourt(courtId: String): Result<Unit> {
+        return runCatching {
+            val userRef = firestore.collection("users").document(auth.currentUser?.uid ?: "")
+            userRef.update(
+                mapOf(
+                    "currentCourt" to courtId,
+                )
+            ).await()
+        }
+    }
+
+    suspend fun leaveCourt(): Result<Unit> {
+        return runCatching {
+            val userRef = firestore.collection("users").document(auth.currentUser?.uid ?: "")
+            userRef.update(
+                mapOf(
+                    "currentCourt" to null,
+                )
+            ).await()
         }
     }
 }

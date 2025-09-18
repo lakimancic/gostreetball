@@ -18,8 +18,18 @@ class AuthRepository @Inject constructor(
 ) {
     suspend fun login(data: LoginData): Result<FirebaseUser> {
         return runCatching {
-            val result = auth.signInWithEmailAndPassword("${data.username}@fake.com", data.password).await()
-            result.user ?: throw Exception("Login failed: user is null")
+            val result = auth.signInWithEmailAndPassword(
+                "${data.username}@fake.com",
+                data.password
+            ).await()
+
+            val firebaseUser = result.user ?: throw Exception("Login failed: user is null")
+
+            firestore.collection("users").document(firebaseUser.uid)
+                .update("currentCourt", null)
+                .await()
+
+            firebaseUser
         }
     }
 

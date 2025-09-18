@@ -6,8 +6,10 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
+import com.example.gostreetball.data.model.Game
 import com.example.gostreetball.data.repo.AuthRepository
 import com.example.gostreetball.data.repo.CourtRepository
+import com.example.gostreetball.data.repo.GameRepository
 import com.example.gostreetball.data.repo.UserRepository
 import com.example.gostreetball.location.LocationManager
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -86,6 +88,15 @@ object AppModule {
         geocoder: Geocoder
     ): CourtRepository {
         return CourtRepository(firebaseAuth, firebaseFireStore, firebaseStorage, geocoder)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGameRepository(
+        firebaseAuth: FirebaseAuth,
+        firebaseFireStore: FirebaseFirestore
+    ): GameRepository {
+        return GameRepository(firebaseFireStore, firebaseAuth)
     }
 
     @Provides

@@ -193,7 +193,10 @@ fun CourtScreen(
             ) {
                 if (state.canJoinCourt) {
                     Button(
-                        onClick = {}
+                        onClick = {
+                            viewModel.joinCourt()
+                            navigateBack()
+                        }
                     ) {
                         Text("Join Court")
                     }

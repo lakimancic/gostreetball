@@ -36,7 +36,8 @@ class LocationService : Service() {
     private lateinit var runnable: Runnable
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private var lastNotifiedIds: Set<String> = emptySet()
+    private var lastNotifiedCourtIds: Set<String> = emptySet()
+    private var lastNotifiedUserIds: Set<String> = emptySet()
     private var checkRadius: Double = 100.0
 
     @Inject lateinit var userRepository: UserRepository
@@ -115,6 +116,52 @@ class LocationService : Service() {
             }.onFailure { e ->
                 Log.e("LocationService", "Failed to update location", e)
             }
+
+            val newCourtsNames = mutableListOf<String>()
+            val newUsersNames = mutableListOf<String>()
+
+            val courtsResult = courtRepository.getCourtsInRadius(lat, lng, checkRadius)
+            val currentCourtIds = mutableSetOf<String>()
+            courtsResult.onSuccess { courts ->
+                currentCourtIds.addAll(courts.map { it.id })
+                val newCourts = courts.filter { it.id !in lastNotifiedCourtIds }
+                newCourtsNames.addAll(newCourts.map { it.name })
+            }.onFailure { e ->
+                Log.e("LocationService", "Failed to fetch nearby courts", e)
+            }
+
+            val usersResult = userRepository.getUsersInRadius(lat, lng, checkRadius)
+            val currentUserIds = mutableSetOf<String>()
+            usersResult.onSuccess { users ->
+                currentUserIds.addAll(users.map { it.uid })
+                val newUsers = users.filter { it.uid !in lastNotifiedUserIds }
+                newUsersNames.addAll(newUsers.map { it.username })
+            }.onFailure { e ->
+                Log.e("LocationService", "Failed to fetch nearby users", e)
+            }
+
+            if (newCourtsNames.isNotEmpty() || newUsersNames.isNotEmpty()) {
+                val messageBuilder = StringBuilder()
+                if (newCourtsNames.isNotEmpty()) {
+                    messageBuilder.append("New Courts Nearby:\n")
+                    newCourtsNames.forEach { name -> messageBuilder.append("• $name\n") }
+                }
+                if (newUsersNames.isNotEmpty()) {
+                    messageBuilder.append("New Players Nearby:\n")
+                    newUsersNames.forEach { name -> messageBuilder.append("• $name\n") }
+                }
+
+                notifier.showNotification(
+                    notificationId = (System.currentTimeMillis() % Int.MAX_VALUE).toInt(),
+                    title = "Nearby Updates",
+                    message = messageBuilder.toString()
+                )
+            }
+
+            userRepository.clearCurrentUserCourtIfInvalid(currentCourtIds)
+
+            lastNotifiedCourtIds = currentCourtIds
+            lastNotifiedUserIds = currentUserIds
         }
     }
 

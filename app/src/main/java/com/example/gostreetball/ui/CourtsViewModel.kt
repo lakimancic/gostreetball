@@ -45,7 +45,6 @@ class CourtsViewModel @Inject constructor(
     val filteredCourts: StateFlow<List<Court>> = _filteredCourts.asStateFlow()
 
     private var currLocation: LatLng = LatLng(0.0, 0.0)
-    private var fetchJob: Job? = null
     private var searchTypeJob: Job? = null
 
     init {

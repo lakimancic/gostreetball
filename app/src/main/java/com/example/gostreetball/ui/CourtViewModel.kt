@@ -7,12 +7,14 @@ import com.example.gostreetball.data.model.BoardType
 import com.example.gostreetball.data.model.Court
 import com.example.gostreetball.data.model.CourtType
 import com.example.gostreetball.data.repo.CourtRepository
+import com.example.gostreetball.data.repo.UserRepository
 import com.example.gostreetball.location.LocationManager
 import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -27,7 +29,8 @@ data class SCourtUiState (
 @HiltViewModel
 class CourtViewModel @Inject constructor(
     private val locationManager: LocationManager,
-    private val courtRepository: CourtRepository
+    private val courtRepository: CourtRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SCourtUiState())
     val uiState: StateFlow<SCourtUiState> = _uiState.asStateFlow()
@@ -67,6 +70,20 @@ class CourtViewModel @Inject constructor(
                     )
                 }
             )
+        }
+    }
+
+    fun joinCourt() {
+        viewModelScope.launch {
+            val courtId = _uiState.value.court?.id ?: return@launch
+
+            _uiState.update { it.copy(isLoading = true) }
+            val result = userRepository.joinCourt(courtId)
+            result.onSuccess {
+                _uiState.update { it.copy(isLoading = false) }
+            }.onFailure { e ->
+                _uiState.update { it.copy(isLoading = false, error = e.message) }
+            }
         }
     }
 

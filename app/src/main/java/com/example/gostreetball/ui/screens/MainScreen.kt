@@ -159,7 +159,9 @@ fun MainScreen(
                 navigateToCourt = { navHostController.navigate("${Screens.CourtScreen}/$it")},
                 viewModel = courtsViewModel
             )
-            2 -> HomeScreen()
+            2 -> HomeScreen(
+                modifier = modifier.padding(innerPadding)
+            )
             3 -> ScoresScreen(
                 modifier = modifier.padding(innerPadding),
                 navigateToUser = { navHostController.navigate("${Screens.UserScreen}/$it")}
