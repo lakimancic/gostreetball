@@ -12,6 +12,7 @@ import com.example.gostreetball.data.repo.CourtRepository
 import com.example.gostreetball.data.repo.GameRepository
 import com.example.gostreetball.data.repo.UserRepository
 import com.example.gostreetball.location.LocationManager
+import com.example.gostreetball.utils.EloSystem
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
@@ -46,6 +47,10 @@ object AppModule {
     fun provideGeocoder(@ApplicationContext context: Context): Geocoder {
         return Geocoder(context, Locale.getDefault())
     }
+
+    @Provides
+    @Singleton
+    fun provideEloSystem(): EloSystem = EloSystem()
 
     @Provides
     @Singleton
@@ -98,9 +103,10 @@ object AppModule {
     @Singleton
     fun provideGameRepository(
         firebaseAuth: FirebaseAuth,
-        firebaseFireStore: FirebaseFirestore
+        firebaseFireStore: FirebaseFirestore,
+        eloSystem: EloSystem
     ): GameRepository {
-        return GameRepository(firebaseFireStore, firebaseAuth)
+        return GameRepository(firebaseFireStore, firebaseAuth, eloSystem)
     }
 
     @Provides

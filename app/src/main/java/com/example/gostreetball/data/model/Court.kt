@@ -27,5 +27,5 @@ data class Court (
     val reviewCount: Int = 0,
     val gameCount: Int = 0,
     val imageUrl: String = "",
-    val coefficient: Double = 0.0,
+    val coefficient: Double = 20.0,
 )

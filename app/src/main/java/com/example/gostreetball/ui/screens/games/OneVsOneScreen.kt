@@ -27,6 +27,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -36,18 +38,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.example.gostreetball.data.model.User
+import com.example.gostreetball.ui.games.OneVsOneViewModel
 import com.example.gostreetball.ui.theme.GoStreetBallTheme
 
 @Composable
 fun OneVsOneScreen(
     modifier: Modifier = Modifier,
-    gameId: String = ""
+    gameId: String = "",
+    viewModel: OneVsOneViewModel = hiltViewModel()
 ) {
+    val state by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadGameWithPlayers(gameId)
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -55,11 +67,8 @@ fun OneVsOneScreen(
             .padding(WindowInsets.statusBars.asPaddingValues())
             .padding(32.dp),
     ) {
-        val players = listOf(
-            User(uid = "1", username = "PlayerA", profileImageUrl = ""),
-            User(uid = "2", username = "PlayerB", profileImageUrl = "")
-        )
-        var playerWithBall by remember { mutableIntStateOf(0) }
+        val players = state.players
+        val playerWithBall = state.playerWithBall
 
         Text(
             text = "One vs One Game",
@@ -88,6 +97,7 @@ fun OneVsOneScreen(
                         AsyncImage(
                             model = player.profileImageUrl,
                             contentDescription = "Player image",
+                            contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .size(50.dp)
                                 .clip(CircleShape)
@@ -116,7 +126,7 @@ fun OneVsOneScreen(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "11",
+                        text = if (playerWithBall == 0) state.scoreA.toString() else state.scoreB.toString(),
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -147,7 +157,7 @@ fun OneVsOneScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "11:11",
+                text = "${state.scoreA}:${state.scoreB}",
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -163,10 +173,10 @@ fun OneVsOneScreen(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Button(onClick = { /* Player 1 scores */ }, modifier = Modifier.weight(1f)) {
+                Button(onClick = { viewModel.threePointer() }, modifier = Modifier.weight(1f)) {
                     Text("Three-pointer")
                 }
-                Button(onClick = { /* Player 2 scores */ }, modifier = Modifier.weight(1f)) {
+                Button(onClick = { viewModel.twoPointer() }, modifier = Modifier.weight(1f)) {
                     Text("Two-pointer")
                 }
             }
@@ -177,10 +187,10 @@ fun OneVsOneScreen(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Button(onClick = { /* Swap ball */ }, modifier = Modifier.weight(1f)) {
+                Button(onClick = { viewModel.switchPossession() }, modifier = Modifier.weight(1f)) {
                     Text("Swap Ball")
                 }
-                Button(onClick = { /* Reset / Other action */ }, modifier = Modifier.weight(1f)) {
+                Button(onClick = { viewModel.resetScores() }, modifier = Modifier.weight(1f)) {
                     Text("Reset")
                 }
             }

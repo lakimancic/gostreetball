@@ -25,6 +25,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -32,18 +34,33 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.example.gostreetball.data.model.User
+import com.example.gostreetball.ui.games.AroundTheWorldViewModel
 import com.example.gostreetball.ui.theme.GoStreetBallTheme
 
 @Composable
 fun AroundTheWorldScreen(
     modifier: Modifier = Modifier,
-    gameId: String = ""
+    gameId: String = "",
+    viewModel: AroundTheWorldViewModel = hiltViewModel()
 ) {
-    val playerOnTurn: User = User(username = "lakimancic")
+    val state by viewModel.uiState.collectAsState()
+    val playerOnTurn = state.players.getOrNull(state.playerWithBall) ?: User()
+    val playersOnCourt by viewModel.playersOnCourt.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadGameWithPlayers(gameId)
+    }
+
+    if (state.isFinished) {
+        Text("Finished")
+        return
+    }
 
     Column(
         modifier = modifier
@@ -52,12 +69,6 @@ fun AroundTheWorldScreen(
             .padding(WindowInsets.statusBars.asPaddingValues())
             .padding(32.dp),
     ) {
-        val players = listOf(
-            User(uid = "1", username = "PlayerA", profileImageUrl = ""),
-            User(uid = "2", username = "PlayerB", profileImageUrl = "")
-        )
-        var playerWithBall by remember { mutableIntStateOf(0) }
-
         Text(
             text = "Around The World",
             style = MaterialTheme.typography.headlineMedium,
@@ -90,6 +101,7 @@ fun AroundTheWorldScreen(
                     AsyncImage(
                         model = playerOnTurn.profileImageUrl,
                         contentDescription = "Player image",
+                        contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(50.dp)
                             .clip(CircleShape)
@@ -119,17 +131,18 @@ fun AroundTheWorldScreen(
         }
         Spacer(modifier = Modifier.height(30.dp))
         BasketballHalfCourt(
-            modifier = Modifier.background(MaterialTheme.colorScheme.background)
+            modifier = Modifier.background(MaterialTheme.colorScheme.background),
+            players = playersOnCourt
         )
         Spacer(modifier = Modifier.height(16.dp))
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Button(onClick = { /* Player 1 scores */ }, modifier = Modifier.weight(1f)) {
+            Button(onClick = { viewModel.hitShot() }, modifier = Modifier.weight(1f)) {
                 Text("Hit")
             }
-            Button(onClick = { /* Player 2 scores */ }, modifier = Modifier.weight(1f)) {
+            Button(onClick = { viewModel.missShot() }, modifier = Modifier.weight(1f)) {
                 Text("Miss")
             }
         }

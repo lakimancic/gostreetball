@@ -1,5 +1,6 @@
 package com.example.gostreetball.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gostreetball.data.model.Court
@@ -64,13 +65,39 @@ class HomeViewModel @Inject constructor(
         latestInviteListener?.remove()
         latestInviteListener = gameRepository.observeLatestInvite(
             onChange = { invite ->
-                _uiState.update { it.copy(invite = invite, error = null) }
+                if (invite != null) {
+                    viewModelScope.launch {
+                        try {
+                            val userResult = userRepository.getUsersForIds(listOf(invite.fromUserId))
+                            val fromUser = userResult.getOrNull()?.firstOrNull()
+
+                            _uiState.update { current ->
+                                current.copy(
+                                    invite = invite,
+                                    inviterUser = fromUser,
+                                    error = null
+                                )
+                            }
+                        } catch (e: Exception) {
+                            _uiState.update { current ->
+                                current.copy(error = e.message)
+                            }
+                        }
+                    }
+                } else {
+                    _uiState.update { current ->
+                        current.copy(invite = null, inviterUser = null)
+                    }
+                }
             },
             onError = { e ->
-                _uiState.update { it.copy(error = e.message) }
+                _uiState.update { current ->
+                    current.copy(error = e.message)
+                }
             }
         )
     }
+
 
     fun respondToInvite(inviteId: String, status: InviteStatus) {
         viewModelScope.launch {

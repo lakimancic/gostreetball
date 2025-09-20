@@ -34,6 +34,10 @@ import com.example.gostreetball.ui.screens.UserScreen
 import com.example.gostreetball.ui.screens.auth.LoginScreen
 import com.example.gostreetball.ui.screens.auth.RegistrationScreen
 import com.example.gostreetball.ui.screens.auth.WelcomeScreen
+import com.example.gostreetball.ui.screens.games.AroundTheWorldScreen
+import com.example.gostreetball.ui.screens.games.OneVsOneScreen
+import com.example.gostreetball.ui.screens.games.SevenUpScreen
+import com.example.gostreetball.ui.screens.games.ThreeXThreeScreen
 import com.example.gostreetball.ui.theme.GoStreetBallTheme
 import com.google.android.gms.maps.MapsInitializer
 import dagger.hilt.android.AndroidEntryPoint
@@ -197,8 +201,33 @@ fun GoStreetBallApp(
 
             GameSetupScreen(
                 courtId = courtId,
-                gameType = gameType
+                gameType = gameType,
+                navigateToGame = { type, gameId ->
+                    navController.navigate("${Screens.GameScreen.name}/$gameId/$type") {
+                        popUpTo(Screens.MainScreen.name) {
+                            inclusive = false
+                        }
+                    }
+                }
             )
+        }
+        composable(
+            route = "${Screens.GameScreen.name}/{gameId}/{gameType}",
+            arguments = listOf(
+                navArgument("gameId") { type = NavType.StringType },
+                navArgument("gameType") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val gameId = backStackEntry.arguments?.getString("gameId") ?: ""
+            val gameTypeStr = backStackEntry.arguments?.getString("gameType") ?: GameType.ONE_VS_ONE.name
+            val gameType = GameType.valueOf(gameTypeStr)
+
+            when (gameType) {
+                GameType.ONE_VS_ONE -> OneVsOneScreen(gameId = gameId)
+                GameType.THREE_X_THREE -> ThreeXThreeScreen(gameId = gameId)
+                GameType.SEVEN_UP -> SevenUpScreen(gameId = gameId)
+                GameType.AROUND_THE_WORLD -> AroundTheWorldScreen(gameId = gameId)
+            }
         }
     }
 }
@@ -214,5 +243,6 @@ enum class Screens {
     UserScreen,
     AddReviewScreen,
     ReviewsScreen,
-    GameSetupScreen
+    GameSetupScreen,
+    GameScreen
 }

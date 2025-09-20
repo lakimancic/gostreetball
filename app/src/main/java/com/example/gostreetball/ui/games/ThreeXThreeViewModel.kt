@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class OneVsOneUiState (
+data class ThreeXThreeUiState (
     val game: Game? = null,
     val scoreA: Int = 0,
     val scoreB: Int = 0,
@@ -26,12 +26,12 @@ data class OneVsOneUiState (
 )
 
 @HiltViewModel
-class OneVsOneViewModel @Inject constructor(
+class ThreeXThreeViewModel @Inject constructor(
     private val gameRepository: GameRepository,
     private val userRepository: UserRepository
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(OneVsOneUiState())
-    val uiState: StateFlow<OneVsOneUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(ThreeXThreeUiState())
+    val uiState: StateFlow<ThreeXThreeUiState> = _uiState.asStateFlow()
 
     fun twoPointer() {
         _uiState.update { current ->
@@ -77,7 +77,7 @@ class OneVsOneViewModel @Inject constructor(
         }
     }
 
-    private fun checkGameFinished(state: OneVsOneUiState): OneVsOneUiState {
+    private fun checkGameFinished(state: ThreeXThreeUiState): ThreeXThreeUiState {
         val game = state.game ?: return state
 
         val target = game.settings.targetPoints

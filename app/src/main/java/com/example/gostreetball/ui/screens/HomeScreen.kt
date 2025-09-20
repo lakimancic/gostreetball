@@ -69,14 +69,9 @@ fun HomeScreen(
     val scrollState = rememberScrollState()
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
-    LaunchedEffect(selectedTab) {
-        if (selectedTab == 1) {
-            viewModel.observeLatestInvite()
-        }
-    }
-
     LaunchedEffect(Unit) {
         viewModel.fetchCurrentCourt()
+        viewModel.observeLatestInvite()
     }
 
     val state by viewModel.uiState.collectAsState()

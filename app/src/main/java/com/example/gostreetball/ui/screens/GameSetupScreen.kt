@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
@@ -36,13 +37,16 @@ import com.example.gostreetball.ui.GameSetupViewModel
 import com.example.gostreetball.ui.screens.game_setup_steps.GameInvitesStep
 import com.example.gostreetball.ui.screens.game_setup_steps.GameSettingsStep
 import com.example.gostreetball.ui.theme.GoStreetBallTheme
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun GameSetupScreen(
     modifier: Modifier = Modifier,
     gameType: GameType,
     courtId: String,
-    viewModel: GameSetupViewModel = hiltViewModel()
+    viewModel: GameSetupViewModel = hiltViewModel(),
+    navigateToGame: (GameType, String) -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
     var step by rememberSaveable { mutableIntStateOf(1) }
@@ -51,6 +55,13 @@ fun GameSetupScreen(
 
     LaunchedEffect(Unit) {
         viewModel.setGameType(gameType)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.navigateToGame.collect {
+            if (state.gameId.isNotBlank())
+                navigateToGame(gameType, state.gameId)
+        }
     }
 
     LaunchedEffect(courtId, state.gameId) {
@@ -67,7 +78,12 @@ fun GameSetupScreen(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             LinearProgressIndicator(
                 progress = { step / 2f },
                 modifier = Modifier.fillMaxWidth(),
@@ -92,7 +108,10 @@ fun GameSetupScreen(
                     viewModel.startGame()
                 }
             },
-            enabled = step == 1 || canStart
+            enabled = step == 1 || canStart,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(WindowInsets.navigationBars.asPaddingValues())
         ) {
             Text(if (step == 1) "Create Game" else "Start Game")
         }
@@ -112,7 +131,8 @@ private fun GameSetupPreview() {
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background),
             gameType = GameType.THREE_X_THREE,
-            courtId = ""
+            courtId = "",
+            navigateToGame = { _, _ -> }
         )
     }
 }

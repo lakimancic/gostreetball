@@ -22,6 +22,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.util.Log
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 
 data class GameSetupUiState (
     val gameSetup: GameSettings = GameSettings(),
@@ -52,6 +54,9 @@ class GameSetupViewModel @Inject constructor(
     private var activeUsersListener: ListenerRegistration? = null
     private var invitesListener: ListenerRegistration? = null
 
+    private val _navigateToGame = MutableSharedFlow<Unit>()
+    val navigateToGame: SharedFlow<Unit> = _navigateToGame
+
     val canStartGame: StateFlow<Boolean> = _uiState
         .map { state ->
             val type = state.gameType
@@ -61,7 +66,7 @@ class GameSetupViewModel @Inject constructor(
             when (type) {
                 GameType.ONE_VS_ONE -> aSize == 1 && bSize == 1
                 GameType.THREE_X_THREE -> aSize == 3 && bSize == 3
-                GameType.SEVEN_UP, GameType.AROUND_THE_WORLD -> aSize in 2..5
+                GameType.SEVEN_UP, GameType.AROUND_THE_WORLD -> aSize in 2..6
             }
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, false)
@@ -73,7 +78,7 @@ class GameSetupViewModel @Inject constructor(
             when (type) {
                 GameType.ONE_VS_ONE -> aCount < 1
                 GameType.THREE_X_THREE -> aCount < 3
-                GameType.SEVEN_UP, GameType.AROUND_THE_WORLD -> aCount < 5
+                GameType.SEVEN_UP, GameType.AROUND_THE_WORLD -> aCount < 6
             }
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, false)
@@ -262,6 +267,7 @@ class GameSetupViewModel @Inject constructor(
             val result = gameRepository.startGame(gameId, players)
             result.onSuccess {
                 _uiState.update { it.copy(isLoading = false) }
+                _navigateToGame.emit(Unit);
             }.onFailure { e ->
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
             }

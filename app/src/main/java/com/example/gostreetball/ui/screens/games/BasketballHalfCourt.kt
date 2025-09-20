@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
+import com.example.gostreetball.data.model.Court
 import com.example.gostreetball.data.model.User
 import com.example.gostreetball.ui.theme.GoStreetBallTheme
 import kotlin.math.PI
@@ -67,15 +68,10 @@ fun CourtPosition.toCoordinates(): Pair<Float, Float> {
 
 @Composable
 fun BasketballHalfCourt(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    players: List<Pair<User, CourtPosition>> = emptyList()
 ) {
     val lineColor = MaterialTheme.colorScheme.onSurface
-    val players = listOf(
-        User(uid = "1", username = "Alice", profileImageUrl = "") to CourtPosition.FreeThrow,
-        User(uid = "2", username = "Bob", profileImageUrl = "") to CourtPosition.BelowBasket,
-        User(uid = "3", username = "Eve", profileImageUrl = "") to CourtPosition.ThreePointer(0.5f),
-        User(uid = "3", username = "Eve", profileImageUrl = "") to CourtPosition.KeyArea(true, 0.5f)
-    )
 
     BoxWithConstraints(
         modifier = modifier
@@ -214,7 +210,13 @@ fun HalfCourtScreenPreview() {
     GoStreetBallTheme {
         BasketballHalfCourt(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.background)
+                .background(MaterialTheme.colorScheme.background),
+            players = listOf(
+                User(uid = "1", username = "Alice", profileImageUrl = "") to CourtPosition.FreeThrow,
+                User(uid = "2", username = "Bob", profileImageUrl = "") to CourtPosition.BelowBasket,
+                User(uid = "3", username = "Eve", profileImageUrl = "") to CourtPosition.ThreePointer(0.25f),
+                User(uid = "3", username = "Eve", profileImageUrl = "") to CourtPosition.KeyArea(false, 0.5f)
+            )
         )
     }
 }
