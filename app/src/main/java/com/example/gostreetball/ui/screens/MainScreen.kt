@@ -160,7 +160,8 @@ fun MainScreen(
                 viewModel = courtsViewModel
             )
             2 -> HomeScreen(
-                modifier = modifier.padding(innerPadding)
+                modifier = modifier.padding(innerPadding),
+                navigateToGameSetup = { courtId, gameType -> navHostController.navigate("${Screens.GameSetupScreen.name}/$courtId/$gameType") }
             )
             3 -> ScoresScreen(
                 modifier = modifier.padding(innerPadding),

@@ -22,8 +22,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.gostreetball.data.local.AppPreferences
 import com.example.gostreetball.data.local.ThemeEnum
+import com.example.gostreetball.data.model.GameType
 import com.example.gostreetball.ui.screens.AddCourtScreen
 import com.example.gostreetball.ui.screens.AddReviewScreen
+import com.example.gostreetball.ui.screens.GameSetupScreen
 import com.example.gostreetball.ui.screens.CourtScreen
 import com.example.gostreetball.ui.screens.FilterScreen
 import com.example.gostreetball.ui.screens.MainScreen
@@ -182,6 +184,22 @@ fun GoStreetBallApp(
                 navigateBack = { navController.popBackStack() }
             )
         }
+        composable(
+            route = "${Screens.GameSetupScreen.name}/{courtId}/{gameType}",
+            arguments = listOf(
+                navArgument("courtId") { type = NavType.StringType },
+                navArgument("gameType") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val courtId = backStackEntry.arguments?.getString("courtId") ?: ""
+            val gameTypeStr = backStackEntry.arguments?.getString("gameType") ?: GameType.ONE_VS_ONE.name
+            val gameType = GameType.valueOf(gameTypeStr)
+
+            GameSetupScreen(
+                courtId = courtId,
+                gameType = gameType
+            )
+        }
     }
 }
 
@@ -195,5 +213,6 @@ enum class Screens {
     CourtScreen,
     UserScreen,
     AddReviewScreen,
-    ReviewsScreen
+    ReviewsScreen,
+    GameSetupScreen
 }

@@ -84,6 +84,7 @@ dependencies {
     implementation(libs.firebase.storage)
     implementation(libs.geofire.android.common)
     implementation(libs.firebase.geofire.android.common)
+    implementation(libs.firebase.messaging)
 
     implementation(libs.coil.network.okhttp)
     implementation(libs.coil.compose)

@@ -55,6 +55,7 @@ import com.example.gostreetball.R
 import com.example.gostreetball.data.model.Court
 import com.example.gostreetball.data.model.GameInvite
 import com.example.gostreetball.data.model.GameType
+import com.example.gostreetball.data.model.InviteStatus
 import com.example.gostreetball.data.model.User
 import com.example.gostreetball.ui.HomeViewModel
 import com.example.gostreetball.ui.theme.GoStreetBallTheme
@@ -62,6 +63,7 @@ import com.example.gostreetball.ui.theme.GoStreetBallTheme
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
+    navigateToGameSetup: (String, GameType) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val scrollState = rememberScrollState()
@@ -69,7 +71,7 @@ fun HomeScreen(
 
     LaunchedEffect(selectedTab) {
         if (selectedTab == 1) {
-            viewModel.fetchLatestInvite()
+            viewModel.observeLatestInvite()
         }
     }
 
@@ -153,16 +155,21 @@ fun HomeScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            GameButton(GameType.ONE_VS_ONE, {})
-                            GameButton(GameType.THREE_X_THREE, {})
+                            GameButton(GameType.ONE_VS_ONE) { navigateToGameSetup(court.id, it) }
+                            GameButton(GameType.THREE_X_THREE) { navigateToGameSetup(court.id, it) }
                         }
                         Spacer(modifier = Modifier.height(16.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            GameButton(GameType.SEVEN_UP, {})
-                            GameButton(GameType.AROUND_THE_WORLD, {})
+                            GameButton(GameType.SEVEN_UP) { navigateToGameSetup(court.id, it) }
+                            GameButton(GameType.AROUND_THE_WORLD) {
+                                navigateToGameSetup(
+                                    court.id,
+                                    it
+                                )
+                            }
                         }
                     }
                     Spacer(modifier = Modifier.height(30.dp))
@@ -208,11 +215,11 @@ fun HomeScreen(
                                 horizontalArrangement = Arrangement.SpaceEvenly,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Button(onClick = {}) {
+                                Button(onClick = { viewModel.respondToInvite(invite.id, InviteStatus.ACCEPTED) }) {
                                     Text("Accept")
                                 }
                                 OutlinedButton(
-                                    onClick = {},
+                                    onClick = { viewModel.respondToInvite(invite.id, InviteStatus.REJECTED) },
                                     border = BorderStroke(2.dp, MaterialTheme.colorScheme.secondary)
                                 ) {
                                     Text("Reject")
@@ -325,6 +332,7 @@ fun HomeScreenPreview() {
         HomeScreen(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background),
+            navigateToGameSetup = { _, _ -> }
         )
     }
 }

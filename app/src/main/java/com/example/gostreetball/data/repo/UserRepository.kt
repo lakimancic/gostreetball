@@ -12,6 +12,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
@@ -284,19 +285,34 @@ class UserRepository @Inject constructor(
         }
     }
 
-    suspend fun getActiveUsersInCourt(courtId: String): Result<List<User>> = runCatching {
+    fun observeActiveUsersInCourt(
+        courtId: String,
+        onChange: (List<User>) -> Unit,
+        onError: (Exception) -> Unit = {}
+    ): ListenerRegistration {
         val currentUser = auth.currentUser ?: throw Exception("Not logged in")
-        val fiveMinutesAgo = System.currentTimeMillis() - 5 * 60 * 1000
 
-        val snapshot = firestore.collection("users")
+        return firestore.collection("users")
             .whereEqualTo("currentCourt", courtId)
-            .whereGreaterThanOrEqualTo("lastLocationUpdate", fiveMinutesAgo)
-            .get()
-            .await()
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    onError(e)
+                    return@addSnapshotListener
+                }
 
-        snapshot.documents.mapNotNull { doc ->
-            doc.toObject(User::class.java)?.takeIf { it.uid != currentUser.uid }
-        }
+                val now = System.currentTimeMillis()
+                val fiveMinutesAgo = now - 5 * 60 * 1000
+
+                val users = snapshot?.documents
+                    ?.mapNotNull { it.toObject(User::class.java) }
+                    ?.filter { user ->
+                        user.uid != currentUser.uid &&
+                        user.lastLocationUpdate >= fiveMinutesAgo
+                    }
+                    ?: emptyList()
+
+                onChange(users)
+            }
     }
 
     suspend fun joinCourt(courtId: String): Result<Unit> {

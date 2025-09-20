@@ -28,23 +28,51 @@ class GameRepository @Inject constructor(
         invite.id
     }
 
-    suspend fun getLatestInvite(): Result<GameInvite?> = runCatching {
+    fun observeLatestInvite(
+        onChange: (GameInvite?) -> Unit,
+        onError: (Exception) -> Unit = {}
+    ): ListenerRegistration {
         val firebaseUser = auth.currentUser ?: throw Exception("No logged in user")
 
-        val snapshot = firestore.collection("invites")
+        return firestore.collection("invites")
             .whereEqualTo("toUserId", firebaseUser.uid)
+            .whereEqualTo("status", InviteStatus.PENDING.name)
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .limit(1)
-            .get()
-            .await()
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    onError(e)
+                    return@addSnapshotListener
+                }
 
-        snapshot.documents.firstOrNull()?.toObject(GameInvite::class.java)
+                val invite = snapshot?.documents
+                    ?.firstOrNull()
+                    ?.toObject(GameInvite::class.java)
+
+                onChange(invite)
+            }
     }
 
     suspend fun updateInviteStatus(inviteId: String, status: InviteStatus): Result<Unit> = runCatching {
         firestore.collection("invites").document(inviteId)
             .update("status", status)
             .await()
+    }
+
+    suspend fun cancelInvite(toUserId: String, gameId: String): Result<Unit> = runCatching {
+        val snapshot = firestore.collection("invites")
+            .whereEqualTo("toUserId", toUserId)
+            .whereEqualTo("gameId", gameId)
+            .get()
+            .await()
+
+        val batch = firestore.batch()
+
+        snapshot.documents.forEach { doc ->
+            batch.update(doc.reference, "status", InviteStatus.REJECTED)
+        }
+
+        batch.commit().await()
     }
 
     suspend fun createGame(game: Game): Result<String> = runCatching {
@@ -54,13 +82,38 @@ class GameRepository @Inject constructor(
         gameId
     }
 
-    fun observeAcceptedInvitesForGame(
+    suspend fun startGame(gameId: String, players: List<String>): Result<Unit> = runCatching {
+        val currentUser = auth.currentUser ?: throw Exception("Not logged in")
+
+        firestore.collection("games")
+            .document(gameId)
+            .update(
+                mapOf(
+                    "players" to players,
+                    "judgeId" to currentUser.uid
+                )
+            )
+            .await()
+    }
+
+    suspend fun getGame(gameId: String): Result<Game?> {
+        return runCatching {
+            val snapshot = firestore.collection("games")
+                .document(gameId)
+                .get()
+                .await()
+
+            snapshot.toObject(Game::class.java)
+        }
+    }
+
+    fun observeFinishedInvitesForGame(
         gameId: String,
         onChange: (List<GameInvite>) -> Unit
     ): ListenerRegistration {
         return firestore.collection("invites")
             .whereEqualTo("gameId", gameId)
-            .whereEqualTo("status", InviteStatus.ACCEPTED)
+            .whereIn("status", listOf(InviteStatus.ACCEPTED.name, InviteStatus.REJECTED.name))
             .addSnapshotListener { snapshot, e ->
                 if (e != null) return@addSnapshotListener
                 if (snapshot != null) {
