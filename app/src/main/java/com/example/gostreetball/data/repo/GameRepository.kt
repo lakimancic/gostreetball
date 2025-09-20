@@ -8,6 +8,7 @@ import com.example.gostreetball.data.model.InviteStatus
 import com.example.gostreetball.data.model.User
 import com.example.gostreetball.utils.EloSystem
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.tasks.await
@@ -130,13 +131,9 @@ class GameRepository @Inject constructor(
         playerOrders: List<User>,
         winnerIndex: Int? = null
     ): Result<Unit> = runCatching {
-        val courtCoefficient = playerOrders.firstOrNull()?.currentCourt?.let { courtId ->
-            firestore.collection("courts")
-                .document(courtId)
-                .get()
-                .await()
-                .getDouble("coefficient") ?: 20.0
-        } ?: 20.0
+        val courtId = playerOrders.firstOrNull()?.currentCourt
+        val courtRef = courtId?.let { firestore.collection("courts").document(it) }
+        val courtCoefficient = courtRef?.get()?.await()?.getDouble("coefficient") ?: 20.0
 
         when (game.type) {
             GameType.SEVEN_UP, GameType.AROUND_THE_WORLD -> {
@@ -200,6 +197,8 @@ class GameRepository @Inject constructor(
                 }
             }
         }
+
+        courtRef?.update("gameCount", FieldValue.increment(1))?.await()
 
         firestore.collection("games")
             .document(game.id)
