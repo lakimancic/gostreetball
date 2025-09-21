@@ -9,6 +9,7 @@ import com.example.gostreetball.data.model.CourtType
 import com.example.gostreetball.data.repo.CourtRepository
 import com.example.gostreetball.location.LocationManager
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.firestore.GeoPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -48,9 +49,13 @@ class CourtsViewModel @Inject constructor(
     private var searchTypeJob: Job? = null
 
     init {
-        currLocation = locationManager.currentLocation.value ?: currLocation
         viewModelScope.launch {
             _uiState.collect { updateFilteredCourts() }
+        }
+        viewModelScope.launch {
+            locationManager.currentLocation.collect { latLng ->
+                currLocation = latLng?.let { LatLng(it.latitude, it.longitude) } ?: currLocation
+            }
         }
         fetchCourts()
     }

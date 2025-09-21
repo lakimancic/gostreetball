@@ -169,7 +169,12 @@ fun MainScreen(
             )
             4 -> ProfileScreen(
                 modifier = modifier.padding(innerPadding),
-                navigateToWelcome = { navHostController.popBackStack(Screens.WelcomeScreen.name, false) },
+                navigateToWelcome = { navHostController.navigate(Screens.WelcomeScreen.name) {
+                    popUpTo(navHostController.graph.startDestinationId) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                } },
                 navigateToUser = { navHostController.navigate("${Screens.UserScreen}/$it")}
             )
         }

@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.gostreetball.data.model.Game
 import com.example.gostreetball.data.model.GameInvite
 import com.example.gostreetball.data.model.GameType
+import com.example.gostreetball.data.model.GameWithUsers
 import com.example.gostreetball.data.model.InviteStatus
 import com.example.gostreetball.data.model.User
 import com.example.gostreetball.utils.EloSystem
@@ -131,9 +132,9 @@ class GameRepository @Inject constructor(
         playerOrders: List<User>,
         winnerIndex: Int? = null
     ): Result<Unit> = runCatching {
-        val courtId = playerOrders.firstOrNull()?.currentCourt
-        val courtRef = courtId?.let { firestore.collection("courts").document(it) }
-        val courtCoefficient = courtRef?.get()?.await()?.getDouble("coefficient") ?: 20.0
+        val courtId = game.courtId
+        val courtRef = courtId.let { firestore.collection("courts").document(it) }
+        val courtCoefficient = courtRef.get().await()?.getDouble("coefficient") ?: 20.0
 
         when (game.type) {
             GameType.SEVEN_UP, GameType.AROUND_THE_WORLD -> {
@@ -198,11 +199,95 @@ class GameRepository @Inject constructor(
             }
         }
 
-        courtRef?.update("gameCount", FieldValue.increment(1))?.await()
+        courtRef.update("gameCount", FieldValue.increment(1)).await()
 
         firestore.collection("games")
             .document(game.id)
             .set(game.copy(winner = winnerIndex ?: 0))
             .await()
     }
+
+    suspend fun getUserGames(userId: String): List<Pair<Game, Boolean>> {
+        val snapshot = firestore.collection("games")
+            .whereArrayContains("players", userId)
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .get()
+            .await()
+
+        return snapshot.documents.mapNotNull { doc ->
+            val game = doc.toObject(Game::class.java)?.copy(id = doc.id) ?: return@mapNotNull null
+
+            val didWin = when (game.type) {
+                GameType.THREE_X_THREE -> {
+                    val chunks = game.players.chunked(3)
+                    val winnerChunk = game.winner.takeIf { it in chunks.indices }?.let { chunks[it] } ?: emptyList()
+                    userId in winnerChunk
+                }
+                else -> {
+                    if (game.winner >= 0 && game.winner < game.players.size) {
+                        game.players[game.winner] == userId
+                    } else false
+                }
+            }
+
+            game to didWin
+        }
+    }
+
+    suspend fun getCourtGames(courtId: String): List<Game> {
+        val snapshot = firestore.collection("games")
+            .whereEqualTo("courtId", courtId)
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .get()
+            .await()
+
+        return snapshot.documents.mapNotNull { doc ->
+            doc.toObject(Game::class.java)?.copy(id = doc.id)
+        }
+    }
+
+    suspend fun getGameWithWinnerAndJudge(gameId: String): GameWithUsers? {
+        val gameDoc = firestore.collection("games")
+            .document(gameId)
+            .get()
+            .await()
+
+        val game = gameDoc.toObject(Game::class.java)?.copy(id = gameDoc.id) ?: return null
+
+        val judge = if (game.judgeId.isNotBlank()) {
+            firestore.collection("users")
+                .document(game.judgeId)
+                .get()
+                .await()
+                .toObject(User::class.java)
+        } else null
+
+        val winners: List<User> = when (game.type) {
+            GameType.THREE_X_THREE -> {
+                val chunks = game.players.chunked(3)
+                val winnerChunk = game.winner.takeIf { it in chunks.indices }?.let { chunks[it] } ?: emptyList()
+                winnerChunk.mapNotNull { uid ->
+                    firestore.collection("users").document(uid).get().await().toObject(User::class.java)
+                }
+            }
+            else -> {
+                if (game.winner in game.players.indices) {
+                    listOfNotNull(
+                        firestore.collection("users")
+                            .document(game.players[game.winner])
+                            .get()
+                            .await()
+                            .toObject(User::class.java)
+                    )
+                } else emptyList()
+            }
+        }
+
+        return GameWithUsers(
+            game = game,
+            winners = winners,
+            judge = judge
+        )
+    }
+
 }

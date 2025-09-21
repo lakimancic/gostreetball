@@ -18,6 +18,7 @@ data class Game (
     val judgeId: String = "",
     val players: List<String> = emptyList(),
     val winner: Int = -1,
+    val courtId: String = "",
 
     val settings: GameSettings = GameSettings()
 )
@@ -28,4 +29,10 @@ data class GameSettings (
     val makeItTakeIt: Boolean = false,
     val missCount: Boolean = true,
     val longRoute: Boolean = true
+)
+
+data class GameWithUsers(
+    val game: Game,
+    val winners: List<User>,
+    val judge: User?
 )

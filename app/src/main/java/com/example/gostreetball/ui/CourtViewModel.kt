@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.gostreetball.data.model.BoardType
 import com.example.gostreetball.data.model.Court
 import com.example.gostreetball.data.model.CourtType
+import com.example.gostreetball.data.model.Game
 import com.example.gostreetball.data.repo.CourtRepository
+import com.example.gostreetball.data.repo.GameRepository
 import com.example.gostreetball.data.repo.UserRepository
 import com.example.gostreetball.location.LocationManager
 import com.google.android.gms.maps.model.LatLng
@@ -23,14 +25,16 @@ data class SCourtUiState (
     val isLoading: Boolean = false,
     val error: String? = null,
     val hasReviewed: Boolean = false,
-    val canJoinCourt: Boolean = false
+    val canJoinCourt: Boolean = false,
+    val games: List<Game> = emptyList()
 )
 
 @HiltViewModel
 class CourtViewModel @Inject constructor(
     private val locationManager: LocationManager,
     private val courtRepository: CourtRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val gameRepository: GameRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SCourtUiState())
     val uiState: StateFlow<SCourtUiState> = _uiState.asStateFlow()
@@ -97,5 +101,28 @@ class CourtViewModel @Inject constructor(
         val results = FloatArray(1)
         android.location.Location.distanceBetween(userLat, userLng, courtLat, courtLng, results)
         return results[0] <= radiusMeters
+    }
+
+    fun fetchCourtGames(courtId: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+
+            try {
+                val games = gameRepository.getCourtGames(courtId)
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        games = games,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        isLoading = false,
+                        error = e.message
+                    )
+                }
+            }
+        }
     }
 }

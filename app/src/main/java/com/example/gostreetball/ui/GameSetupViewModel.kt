@@ -236,14 +236,15 @@ class GameSetupViewModel @Inject constructor(
         }
     }
 
-    fun createGame() {
+    fun createGame(courtId: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
             val newGame = Game(
                 type = uiState.value.gameType,
                 judgeId = authRepository.getCurrentUser()?.uid ?: "",
-                settings = uiState.value.gameSetup
+                settings = uiState.value.gameSetup,
+                courtId = courtId
             )
 
             val result = gameRepository.createGame(newGame)
@@ -287,7 +288,7 @@ class GameSetupViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, error = null) }
 
             val result = gameRepository.sendInvite(toUser.uid, gameId, gameType)
-            result.onSuccess { inviteId ->
+            result.onSuccess { _ ->
                 _uiState.update { current ->
                     if (isTeamA) {
                         current.copy(

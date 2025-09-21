@@ -27,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -43,6 +44,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import com.example.gostreetball.data.model.GameType
 import com.example.gostreetball.data.model.User
 import com.example.gostreetball.ui.games.ThreeXThreeViewModel
 import com.example.gostreetball.ui.theme.GoStreetBallTheme
@@ -51,9 +53,25 @@ import com.example.gostreetball.ui.theme.GoStreetBallTheme
 fun ThreeXThreeScreen(
     modifier: Modifier = Modifier,
     gameId: String = "",
-    viewModel: ThreeXThreeViewModel = hiltViewModel()
+    viewModel: ThreeXThreeViewModel = hiltViewModel(),
+    onBackHome: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadGameWithPlayers(gameId)
+    }
+
+    val winners = state.winners
+    if (winners.isNotEmpty()) {
+        WinnerScreen(
+            modifier = modifier,
+            winners = winners,
+            gameType = GameType.THREE_X_THREE,
+            onBackToHome = onBackHome
+        )
+        return
+    }
 
     Column(
         modifier = modifier
@@ -140,7 +158,7 @@ fun ThreeXThreeScreen(
                             }
                         }
                         Text(
-                            text = if (playersWithBall == 0) state.scoreA.toString() else state.scoreB.toString(),
+                            text = if (index == 0) state.scoreA.toString() else state.scoreB.toString(),
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.onSurface
                         )

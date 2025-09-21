@@ -3,6 +3,7 @@ package com.example.gostreetball.ui.screens.games
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.aspectRatio
@@ -69,7 +70,8 @@ fun CourtPosition.toCoordinates(): Pair<Float, Float> {
 @Composable
 fun BasketballHalfCourt(
     modifier: Modifier = Modifier,
-    players: List<Pair<User, CourtPosition>> = emptyList()
+    players: List<Pair<User, CourtPosition>> = emptyList(),
+    playerWithBall: Int = -1
 ) {
     val lineColor = MaterialTheme.colorScheme.onSurface
 
@@ -161,7 +163,7 @@ fun BasketballHalfCourt(
         val sizeDp = 40.dp
         val sizePx = with(density) { sizeDp.toPx() }
 
-        players.forEach { (user, position) ->
+        players.forEachIndexed { index, (user, position) ->
             val (xNorm, yNorm) = position.toCoordinates()
             val x = xNorm * courtWidth
             val y = yNorm * courtHeight
@@ -177,7 +179,12 @@ fun BasketballHalfCourt(
                     }
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f))
-                    .zIndex(2f),
+                    .border(
+                        width = 2.dp,
+                        color = if (index == playerWithBall) MaterialTheme.colorScheme.primary else Color.Transparent,
+                        shape = CircleShape
+                    )
+                    .zIndex(if (index == playerWithBall) 3f else 2f),
                 contentAlignment = Alignment.Center
             ) {
                 if (user.profileImageUrl.isNotBlank()) {
@@ -216,7 +223,8 @@ fun HalfCourtScreenPreview() {
                 User(uid = "2", username = "Bob", profileImageUrl = "") to CourtPosition.BelowBasket,
                 User(uid = "3", username = "Eve", profileImageUrl = "") to CourtPosition.ThreePointer(0.25f),
                 User(uid = "3", username = "Eve", profileImageUrl = "") to CourtPosition.KeyArea(false, 0.5f)
-            )
+            ),
+            playerWithBall = 1
         )
     }
 }

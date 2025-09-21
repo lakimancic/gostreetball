@@ -28,6 +28,7 @@ data class SevenUpUiState (
     val players: List<User> = emptyList(),
     val error: String? = null,
     val isLoading: Boolean = false,
+    val winner: User? = null
 )
 
 @HiltViewModel
@@ -108,7 +109,8 @@ class SevenUpViewModel @Inject constructor(
                     scores = scores,
                     accumulated = 0,
                     playerOrders = playerOrders,
-                    playerWithBall = winnerIndex
+                    playerWithBall = winnerIndex,
+                    winner = current.players.getOrNull(winnerIndex)
                 )
             }
 
@@ -143,7 +145,7 @@ class SevenUpViewModel @Inject constructor(
         viewModelScope.launch {
             gameRepository.updateScore(
                 game = game,
-                playerOrders = orders,
+                playerOrders = orders.reversed(),
                 winnerIndex = winner
             )
         }

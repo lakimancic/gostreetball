@@ -101,7 +101,7 @@ fun GameSetupScreen(
         Button(
             onClick = {
                 if (step == 1) {
-                    viewModel.createGame()
+                    viewModel.createGame(courtId)
                     step++
                 }
                 else {

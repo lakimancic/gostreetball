@@ -38,6 +38,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import com.example.gostreetball.data.model.GameType
 import com.example.gostreetball.data.model.User
 import com.example.gostreetball.ui.games.SevenUpViewModel
 import com.example.gostreetball.ui.theme.GoStreetBallTheme
@@ -46,7 +47,8 @@ import com.example.gostreetball.ui.theme.GoStreetBallTheme
 fun SevenUpScreen(
     modifier: Modifier = Modifier,
     gameId: String = "",
-    viewModel: SevenUpViewModel = hiltViewModel()
+    viewModel: SevenUpViewModel = hiltViewModel(),
+    onBackHome: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
     val playerOnTurn: Pair<User, Int> =
@@ -56,6 +58,17 @@ fun SevenUpScreen(
 
     LaunchedEffect(Unit) {
         viewModel.loadGameWithPlayers(gameId)
+    }
+
+    val winner = state.winner
+    if (winner != null) {
+        WinnerScreen(
+            modifier = modifier,
+            winners = listOf(winner),
+            gameType = GameType.SEVEN_UP,
+            onBackToHome = onBackHome
+        )
+        return
     }
 
     Column(
@@ -133,7 +146,8 @@ fun SevenUpScreen(
         Spacer(modifier = Modifier.height(30.dp))
         BasketballHalfCourt(
             modifier = Modifier.background(MaterialTheme.colorScheme.background),
-            players = playersOnCourt
+            players = playersOnCourt,
+            playerWithBall = state.playerWithBall
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(

@@ -55,75 +55,92 @@ fun GameInvitesStep(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        items(inviteStatuses) { status ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            ) {
-                if (status.user.profileImageUrl.isNotBlank()) {
-                    AsyncImage(
-                        model = status.user.profileImageUrl,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
+        if (inviteStatuses.isEmpty()) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No players yet",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Default user",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
                 }
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = status.user.username,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f)
-                )
-                when (gameType) {
-                    GameType.ONE_VS_ONE, GameType.THREE_X_THREE -> {
-                        InviteColumn(
-                            label = "A",
-                            status = status.statusA,
-                            otherStatus = status.statusB, // check exclusivity
-                            canInvite = canInviteA,
-                            onInvite = { viewModel.sendInvite(status.user, true) },
-                            onCancel = { viewModel.cancelInvite(status.user.uid) }
+            }
+        } else {
+            items(inviteStatuses) { status ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
+                    if (status.user.profileImageUrl.isNotBlank()) {
+                        AsyncImage(
+                            model = status.user.profileImageUrl,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
                         )
-                        Spacer(Modifier.width(8.dp))
-                        InviteColumn(
-                            label = "B",
-                            status = status.statusB,
-                            otherStatus = status.statusA, // check exclusivity
-                            canInvite = canInviteB,
-                            onInvite = { viewModel.sendInvite(status.user, false) },
-                            onCancel = { viewModel.cancelInvite(status.user.uid) }
-                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = "Default user",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
                     }
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = status.user.username,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f)
+                    )
+                    when (gameType) {
+                        GameType.ONE_VS_ONE, GameType.THREE_X_THREE -> {
+                            InviteColumn(
+                                label = "A",
+                                status = status.statusA,
+                                otherStatus = status.statusB, // check exclusivity
+                                canInvite = canInviteA,
+                                onInvite = { viewModel.sendInvite(status.user, true) },
+                                onCancel = { viewModel.cancelInvite(status.user.uid) }
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            InviteColumn(
+                                label = "B",
+                                status = status.statusB,
+                                otherStatus = status.statusA, // check exclusivity
+                                canInvite = canInviteB,
+                                onInvite = { viewModel.sendInvite(status.user, false) },
+                                onCancel = { viewModel.cancelInvite(status.user.uid) }
+                            )
+                        }
 
-                    GameType.SEVEN_UP, GameType.AROUND_THE_WORLD -> {
-                        InviteColumn(
-                            label = "",
-                            status = status.statusA,
-                            otherStatus = null, // single column
-                            onInvite = { viewModel.sendInvite(status.user, true) },
-                            onCancel = { viewModel.cancelInvite(status.user.uid) },
-                            canInvite = canInviteA,
-                        )
+                        GameType.SEVEN_UP, GameType.AROUND_THE_WORLD -> {
+                            InviteColumn(
+                                label = "",
+                                status = status.statusA,
+                                otherStatus = null, // single column
+                                onInvite = { viewModel.sendInvite(status.user, true) },
+                                onCancel = { viewModel.cancelInvite(status.user.uid) },
+                                canInvite = canInviteA,
+                            )
+                        }
                     }
                 }
             }

@@ -28,6 +28,7 @@ import com.example.gostreetball.ui.screens.AddReviewScreen
 import com.example.gostreetball.ui.screens.GameSetupScreen
 import com.example.gostreetball.ui.screens.CourtScreen
 import com.example.gostreetball.ui.screens.FilterScreen
+import com.example.gostreetball.ui.screens.GameScreen
 import com.example.gostreetball.ui.screens.MainScreen
 import com.example.gostreetball.ui.screens.ReviewsScreen
 import com.example.gostreetball.ui.screens.UserScreen
@@ -141,7 +142,8 @@ fun GoStreetBallApp(
                 courtId = courtId,
                 navigateBack = { navController.popBackStack() },
                 navigateToReview = { navController.navigate("${Screens.AddReviewScreen.name}/$courtId/${true}") },
-                navigateToReviews = { navController.navigate("${Screens.ReviewsScreen.name}/$courtId/${true}") }
+                navigateToReviews = { navController.navigate("${Screens.ReviewsScreen.name}/$courtId/${true}") },
+                navigateToGame = { navController.navigate("${Screens.GameDetailsScreen}/$it") }
             )
         }
         composable(
@@ -153,7 +155,8 @@ fun GoStreetBallApp(
                 userId = userId,
                 navigateBack = { navController.popBackStack() },
                 navigateToReview = { navController.navigate("${Screens.AddReviewScreen.name}/$userId/${false}")},
-                navigateToReviews = { navController.navigate("${Screens.ReviewsScreen.name}/$userId/${false}") }
+                navigateToReviews = { navController.navigate("${Screens.ReviewsScreen.name}/$userId/${false}") },
+                navigateToGame = { navController.navigate("${Screens.GameDetailsScreen}/$it") }
             )
         }
         composable(
@@ -223,11 +226,33 @@ fun GoStreetBallApp(
             val gameType = GameType.valueOf(gameTypeStr)
 
             when (gameType) {
-                GameType.ONE_VS_ONE -> OneVsOneScreen(gameId = gameId)
-                GameType.THREE_X_THREE -> ThreeXThreeScreen(gameId = gameId)
-                GameType.SEVEN_UP -> SevenUpScreen(gameId = gameId)
-                GameType.AROUND_THE_WORLD -> AroundTheWorldScreen(gameId = gameId)
+                GameType.ONE_VS_ONE -> OneVsOneScreen(gameId = gameId, onBackHome = {
+                    navController.popBackStack(Screens.MainScreen.name, false)
+                })
+                GameType.THREE_X_THREE -> ThreeXThreeScreen(gameId = gameId, onBackHome = {
+                    navController.popBackStack(Screens.MainScreen.name, false)
+                })
+                GameType.SEVEN_UP -> SevenUpScreen(gameId = gameId, onBackHome = {
+                    navController.popBackStack(Screens.MainScreen.name, false)
+                })
+                GameType.AROUND_THE_WORLD -> AroundTheWorldScreen(gameId = gameId, onBackHome = {
+                    navController.popBackStack(Screens.MainScreen.name, false)
+                })
             }
+        }
+        composable(
+            route = "${Screens.GameDetailsScreen.name}/{gameId}",
+            arguments = listOf(
+                navArgument("gameId") { type = NavType.StringType },
+            )
+        ) { backStackEntry ->
+            val gameId = backStackEntry.arguments?.getString("gameId") ?: ""
+
+            GameScreen(
+                gameId = gameId,
+                navigateToUser = { navController.navigate("${Screens.UserScreen}/$it") },
+                navigateBack = { navController.popBackStack() },
+            )
         }
     }
 }
@@ -244,5 +269,6 @@ enum class Screens {
     AddReviewScreen,
     ReviewsScreen,
     GameSetupScreen,
-    GameScreen
+    GameScreen,
+    GameDetailsScreen
 }

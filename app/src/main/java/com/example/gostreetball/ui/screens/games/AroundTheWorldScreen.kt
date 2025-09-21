@@ -39,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import com.example.gostreetball.data.model.GameType
 import com.example.gostreetball.data.model.User
 import com.example.gostreetball.ui.games.AroundTheWorldViewModel
 import com.example.gostreetball.ui.theme.GoStreetBallTheme
@@ -47,7 +48,8 @@ import com.example.gostreetball.ui.theme.GoStreetBallTheme
 fun AroundTheWorldScreen(
     modifier: Modifier = Modifier,
     gameId: String = "",
-    viewModel: AroundTheWorldViewModel = hiltViewModel()
+    viewModel: AroundTheWorldViewModel = hiltViewModel(),
+    onBackHome: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
     val playerOnTurn = state.players.getOrNull(state.playerWithBall) ?: User()
@@ -57,8 +59,14 @@ fun AroundTheWorldScreen(
         viewModel.loadGameWithPlayers(gameId)
     }
 
-    if (state.isFinished) {
-        Text("Finished")
+    val winner = state.winner
+    if (winner != null) {
+        WinnerScreen(
+            modifier = modifier,
+            winners = listOf(winner),
+            gameType = GameType.AROUND_THE_WORLD,
+            onBackToHome = onBackHome
+        )
         return
     }
 
@@ -132,7 +140,8 @@ fun AroundTheWorldScreen(
         Spacer(modifier = Modifier.height(30.dp))
         BasketballHalfCourt(
             modifier = Modifier.background(MaterialTheme.colorScheme.background),
-            players = playersOnCourt
+            players = playersOnCourt,
+            playerWithBall = state.playerWithBall
         )
         Spacer(modifier = Modifier.height(16.dp))
         Row(
@@ -160,7 +169,8 @@ fun AroundTheWorldScreenPreview() {
     GoStreetBallTheme {
         AroundTheWorldScreen(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.background)
+                .background(MaterialTheme.colorScheme.background),
+            onBackHome = {}
         )
     }
 }

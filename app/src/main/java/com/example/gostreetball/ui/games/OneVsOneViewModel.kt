@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.random.Random
 
 data class OneVsOneUiState (
     val game: Game? = null,
@@ -23,6 +24,7 @@ data class OneVsOneUiState (
     val error: String? = null,
     var players: List<User> = emptyList(),
     val isLoading: Boolean = false,
+    val winner: User? = null
 )
 
 @HiltViewModel
@@ -94,7 +96,7 @@ class OneVsOneViewModel @Inject constructor(
 
         return if (winner != -1) {
             finishGame(winner)
-            state
+            state.copy(winner = state.players.getOrNull(winner))
         } else {
             state
         }
@@ -141,7 +143,7 @@ class OneVsOneViewModel @Inject constructor(
                                 game = game,
                                 scoreA = 0,
                                 scoreB = 0,
-                                playerWithBall = 0,
+                                playerWithBall = Random.nextBits(1),
                                 players = users,
                                 isLoading = false,
                                 error = null

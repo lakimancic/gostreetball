@@ -29,11 +29,7 @@ class ScoresViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ScoresUiState())
     val uiState: StateFlow<ScoresUiState> = _uiState.asStateFlow()
 
-    init {
-        fetchScoreboard()
-    }
-
-    private fun fetchScoreboard() {
+    fun fetchScoreboard() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 

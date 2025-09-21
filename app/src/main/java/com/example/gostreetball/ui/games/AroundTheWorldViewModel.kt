@@ -26,7 +26,7 @@ data class AroundTheWorldUiState (
     val players: List<User> = emptyList(),
     val error: String? = null,
     val isLoading: Boolean = false,
-    val isFinished: Boolean = false
+    val winner: User? = null
 )
 
 @HiltViewModel
@@ -98,7 +98,7 @@ class AroundTheWorldViewModel @Inject constructor(
             positions[player] = nextIndex
             if (nextIndex >= route.size) {
                 finishGame(player, positions)
-                current.copy(isFinished = true)
+                current.copy(winner = current.players.getOrNull(player))
             } else {
                 current.copy(positions = positions)
             }
@@ -129,13 +129,11 @@ class AroundTheWorldViewModel @Inject constructor(
             .sortedByDescending { it.second }
             .map { it.first }
 
-        val winnerIndex = players.indexOf(sortedPlayers.first())
-
         viewModelScope.launch {
             gameRepository.updateScore(
                 game = game,
                 playerOrders = sortedPlayers,
-                winnerIndex = winnerIndex
+                winnerIndex = winner
             )
         }
     }

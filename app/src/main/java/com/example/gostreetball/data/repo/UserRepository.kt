@@ -252,9 +252,11 @@ class UserRepository @Inject constructor(
                 .get()
                 .await()
 
-            snapshot.documents.mapNotNull { doc ->
+            val usersById = snapshot.documents.mapNotNull { doc ->
                 doc.toObject(User::class.java)?.copy(uid = doc.id)
-            }
+            }.associateBy { it.uid }
+
+            ids.mapNotNull { usersById[it] }
         }
     }
 

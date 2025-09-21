@@ -156,7 +156,7 @@ fun FilterScreen(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Radius: ${state.radius}m",
+                    text = "Radius: ${state.radius ?: 0}m",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
@@ -170,7 +170,7 @@ fun FilterScreen(
                 Slider(
                     value = state.radius!!.toFloat(),
                     onValueChange = { viewModel.setRadius(it.toInt()) },
-                    valueRange = 10f..1000f
+                    valueRange = 10f..10000f
                 )
             }
         }
@@ -187,7 +187,10 @@ fun FilterScreen(
             ) { Text("Apply", style = MaterialTheme.typography.titleLarge) }
             OutlinedButton(
                 border = BorderStroke(2.dp, MaterialTheme.colorScheme.secondary),
-                onClick = { viewModel.resetFilters() }
+                onClick = {
+                    viewModel.resetFilters()
+                    navController.popBackStack()
+                }
             ) { Text("Clear", style = MaterialTheme.typography.titleLarge) }
         }
     }

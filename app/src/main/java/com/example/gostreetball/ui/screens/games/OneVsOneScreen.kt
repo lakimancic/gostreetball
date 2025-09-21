@@ -44,6 +44,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import com.example.gostreetball.data.model.GameType
 import com.example.gostreetball.data.model.User
 import com.example.gostreetball.ui.games.OneVsOneViewModel
 import com.example.gostreetball.ui.theme.GoStreetBallTheme
@@ -52,12 +53,24 @@ import com.example.gostreetball.ui.theme.GoStreetBallTheme
 fun OneVsOneScreen(
     modifier: Modifier = Modifier,
     gameId: String = "",
-    viewModel: OneVsOneViewModel = hiltViewModel()
+    viewModel: OneVsOneViewModel = hiltViewModel(),
+    onBackHome: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadGameWithPlayers(gameId)
+    }
+
+    val winner = state.winner
+    if (winner != null) {
+        WinnerScreen(
+            modifier = modifier,
+            winners = listOf(winner),
+            gameType = GameType.ONE_VS_ONE,
+            onBackToHome = onBackHome
+        )
+        return
     }
 
     Column(
@@ -126,7 +139,7 @@ fun OneVsOneScreen(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = if (playerWithBall == 0) state.scoreA.toString() else state.scoreB.toString(),
+                        text = if (index == 0) state.scoreA.toString() else state.scoreB.toString(),
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurface
                     )

@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.random.Random
 
 data class ThreeXThreeUiState (
     val game: Game? = null,
@@ -23,6 +24,7 @@ data class ThreeXThreeUiState (
     val error: String? = null,
     var players: List<User> = emptyList(),
     val isLoading: Boolean = false,
+    val winners: List<User> = emptyList()
 )
 
 @HiltViewModel
@@ -94,7 +96,7 @@ class ThreeXThreeViewModel @Inject constructor(
 
         return if (winner != -1) {
             finishGame(winner)
-            state
+            state.copy(winners = state.players.chunked(3).getOrElse(winner) { emptyList() })
         } else {
             state
         }
@@ -141,7 +143,7 @@ class ThreeXThreeViewModel @Inject constructor(
                                 game = game,
                                 scoreA = 0,
                                 scoreB = 0,
-                                playerWithBall = 0,
+                                playerWithBall = Random.nextBits(1),
                                 players = users,
                                 isLoading = false,
                                 error = null
