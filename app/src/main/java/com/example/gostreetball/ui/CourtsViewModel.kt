@@ -32,6 +32,8 @@ data class CourtUiState (
     val debounceQuery: String = "",
     val sortKey: SortType = SortType.NONE,
     val radius: Int? = null,
+    val startDate: Long? = null,
+    val endDate: Long? = null
 )
 
 @HiltViewModel
@@ -64,6 +66,8 @@ class CourtsViewModel @Inject constructor(
         val query = _uiState.value.debounceQuery.trim().lowercase()
         val types = _uiState.value.selectedTypes
         val boardTypes = _uiState.value.selectedBoardTypes
+        val startDate = _uiState.value.startDate
+        val endDate = _uiState.value.endDate
 
         val filtered = _uiState.value.courts.filter { court ->
             val type = types.isEmpty() || types.contains(court.type)
@@ -73,7 +77,11 @@ class CourtsViewModel @Inject constructor(
                 "${court.name} ${court.city} ${court.country}".lowercase().contains(query)
             }
 
-            type && boardType && search
+            val dates = if (startDate != null && endDate != null) {
+                court.createdAt >= startDate && court.createdAt <= endDate
+            } else true
+
+            type && boardType && search && dates
         }
 
         val sorted = when (_uiState.value.sortKey) {
@@ -126,7 +134,16 @@ class CourtsViewModel @Inject constructor(
             selectedTypes = emptySet(),
             selectedBoardTypes = emptySet(),
             sortKey = SortType.NONE,
-            radius = null
+            radius = null,
+            startDate = null,
+            endDate = null
+        ) }
+    }
+
+    fun setDateRange(start: Long?, end: Long?) {
+        _uiState.update { it.copy(
+            startDate = start,
+            endDate = end
         ) }
     }
 

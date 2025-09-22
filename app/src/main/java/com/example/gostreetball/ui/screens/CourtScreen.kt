@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -82,6 +83,7 @@ fun CourtScreen(
             modifier = modifier
                 .fillMaxWidth()
                 .padding(WindowInsets.statusBars.asPaddingValues())
+                .padding(WindowInsets.navigationBars.asPaddingValues())
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -168,6 +170,12 @@ fun CourtScreen(
 
                 Text(
                     text = "Games played: ${court.gameCount}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Creation date: ${dateFormat.format(Date(court.createdAt))}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )

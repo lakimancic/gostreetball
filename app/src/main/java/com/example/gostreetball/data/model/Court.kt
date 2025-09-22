@@ -28,4 +28,5 @@ data class Court (
     val gameCount: Int = 0,
     val imageUrl: String = "",
     val coefficient: Double = 20.0,
+    val createdAt: Long = System.currentTimeMillis(),
 )
