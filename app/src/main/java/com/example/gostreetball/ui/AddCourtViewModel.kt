@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.gostreetball.data.model.BoardType
 import com.example.gostreetball.data.model.CourtType
 import com.example.gostreetball.data.repo.CourtRepository
-import com.example.gostreetball.location.LocationManager
+import com.example.gostreetball.location.LocationRepository
 import com.example.gostreetball.utils.imageBitmapToByteArray
 import com.google.firebase.firestore.GeoPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,7 +33,7 @@ data class AddUiState (
 @HiltViewModel
 class AddCourtViewModel @Inject constructor(
     private val courtRepository: CourtRepository,
-    private val locationManager: LocationManager
+    private val locationRepository: LocationRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AddUiState())
     val uiState: StateFlow<AddUiState> = _uiState.asStateFlow()
@@ -46,7 +46,7 @@ class AddCourtViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            locationManager.currentLocation.collect { latLng ->
+            locationRepository.currentLocation.collect { latLng ->
                 _currentGeoPoint.value = latLng?.let { GeoPoint(it.latitude, it.longitude) }
             }
         }

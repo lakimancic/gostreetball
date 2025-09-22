@@ -1,5 +1,8 @@
 package com.example.gostreetball.ui.screens
 
+import android.Manifest
+import android.content.Intent
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -40,7 +43,9 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.gostreetball.location.LocationService
 import com.example.gostreetball.ui.CourtsViewModel
 import com.example.gostreetball.ui.MapViewModel
 import com.example.gostreetball.utils.createCourtMarkerBitmap
@@ -62,7 +67,8 @@ fun MapScreen(
     navigateToAdd: () -> Unit,
     navigateToFilter: () -> Unit,
     navigateToCourt: (String) -> Unit,
-    targetLocation: LatLng? = null
+    targetLocation: LatLng? = null,
+    isTrackingOn: Boolean = false
 ) {
     val context = LocalContext.current
     val currentLocation by mapViewModel.currentLocation.collectAsState()
@@ -75,9 +81,22 @@ fun MapScreen(
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        val allGranted = permissions.values.all { it }
-        if (allGranted) {
+        val locationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true &&
+                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+
+        val notificationGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions[Manifest.permission.POST_NOTIFICATIONS] == true
+        } else {
+            true
+        }
+
+        if (locationGranted) {
             mapViewModel.onLocationPermissionsGranted()
+        }
+
+        if (notificationGranted) {
+            val intent = Intent(context, LocationService::class.java)
+            ContextCompat.startForegroundService(context, intent)
         }
     }
 
@@ -208,7 +227,11 @@ fun MapScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "To add court, you need to allow location permission.",
+                            text = if (isTrackingOn) {
+                                "To add court, you need to allow location permission."
+                            } else {
+                                "Tracking location is disabled, enable it to activate location."
+                            },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )
@@ -217,7 +240,8 @@ fun MapScreen(
                             onClick = {
                                 val permissions = mapViewModel.requestLocationPermissions()
                                 permissionLauncher.launch(permissions)
-                            }
+                            },
+                            enabled = isTrackingOn
                         ) {
                             Text(
                                 text = "Activate Location",

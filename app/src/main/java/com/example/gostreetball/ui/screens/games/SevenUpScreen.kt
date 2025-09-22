@@ -55,6 +55,7 @@ fun SevenUpScreen(
         (state.players.getOrNull(state.playerWithBall) ?: User()) to (state.scores.getOrNull(state.playerWithBall) ?: 0)
     val accumulated = state.accumulated
     val playersOnCourt by viewModel.playersOnCourt.collectAsState()
+    val playerIndexOnCourt by viewModel.playerIndexOnCourt.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadGameWithPlayers(gameId)
@@ -147,7 +148,7 @@ fun SevenUpScreen(
         BasketballHalfCourt(
             modifier = Modifier.background(MaterialTheme.colorScheme.background),
             players = playersOnCourt,
-            playerWithBall = state.playerWithBall
+            playerWithBall = playerIndexOnCourt
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(

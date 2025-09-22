@@ -6,12 +6,11 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
-import com.example.gostreetball.data.model.Game
 import com.example.gostreetball.data.repo.AuthRepository
 import com.example.gostreetball.data.repo.CourtRepository
 import com.example.gostreetball.data.repo.GameRepository
 import com.example.gostreetball.data.repo.UserRepository
-import com.example.gostreetball.location.LocationManager
+import com.example.gostreetball.location.LocationRepository
 import com.example.gostreetball.utils.EloSystem
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -61,11 +60,10 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideLocationManager(
-        @ApplicationContext context: Context,
-        fusedLocationProviderClient: FusedLocationProviderClient
-    ): LocationManager {
-        return LocationManager(context, fusedLocationProviderClient)
+    fun provideLocationRepository(
+        @ApplicationContext context: Context
+    ): LocationRepository {
+        return LocationRepository(context)
     }
 
     @Provides

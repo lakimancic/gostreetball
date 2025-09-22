@@ -38,17 +38,16 @@ class LocationService : Service() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var lastNotifiedCourtIds: Set<String> = emptySet()
     private var lastNotifiedUserIds: Set<String> = emptySet()
+    private var lastUpdateTime: Long = 0
     private var checkRadius: Double = 100.0
 
     @Inject lateinit var userRepository: UserRepository
     @Inject lateinit var courtRepository: CourtRepository
+    @Inject lateinit var locationRepository: LocationRepository
     @Inject lateinit var fusedLocationClient: FusedLocationProviderClient
     @Inject lateinit var preferences: AppPreferences
 
     companion object {
-        private const val NOTIFICATION_ID = 1
-        private const val NEARBY_NOTIFICATION_ID = 1001
-
         var isRunning = false
     }
 
@@ -75,7 +74,7 @@ class LocationService : Service() {
         runnable = object : Runnable {
             override fun run() {
                 checkLocationAndNotify()
-                handler.postDelayed(this, 30_000L)
+                handler.postDelayed(this, 5_000L)
             }
         }
         handler.post(runnable)
@@ -99,7 +98,16 @@ class LocationService : Service() {
             .getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, tokenSource.token)
             .addOnSuccessListener { current ->
                 if (current != null) {
-                    triggerLocationCheck(current.latitude, current.longitude)
+                    val lat = current.latitude
+                    val lng = current.longitude
+
+                    locationRepository.updateLocation(LatLng(lat, lng))
+
+                    val now = System.currentTimeMillis()
+                    if (now - lastUpdateTime >= 30_000L) {
+                        triggerLocationCheck(lat, lng)
+                        lastUpdateTime = now
+                    }
                 } else {
                     Log.w("LocationService", "Could not obtain current location.")
                 }

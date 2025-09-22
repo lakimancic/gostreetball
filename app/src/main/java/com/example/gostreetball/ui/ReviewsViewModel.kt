@@ -2,14 +2,10 @@ package com.example.gostreetball.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.gostreetball.data.model.BoardType
-import com.example.gostreetball.data.model.Court
-import com.example.gostreetball.data.model.CourtType
 import com.example.gostreetball.data.model.Review
 import com.example.gostreetball.data.model.User
 import com.example.gostreetball.data.repo.CourtRepository
 import com.example.gostreetball.data.repo.UserRepository
-import com.example.gostreetball.location.LocationManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

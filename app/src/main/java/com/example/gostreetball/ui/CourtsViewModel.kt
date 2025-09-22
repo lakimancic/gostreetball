@@ -1,15 +1,13 @@
 package com.example.gostreetball.ui
 
-import androidx.compose.runtime.derivedStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gostreetball.data.model.BoardType
 import com.example.gostreetball.data.model.Court
 import com.example.gostreetball.data.model.CourtType
 import com.example.gostreetball.data.repo.CourtRepository
-import com.example.gostreetball.location.LocationManager
+import com.example.gostreetball.location.LocationRepository
 import com.google.android.gms.maps.model.LatLng
-import com.google.firebase.firestore.GeoPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -38,7 +36,7 @@ data class CourtUiState (
 
 @HiltViewModel
 class CourtsViewModel @Inject constructor(
-    locationManager: LocationManager,
+    locationRepository: LocationRepository,
     private val courtRepository: CourtRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(CourtUiState())
@@ -55,7 +53,7 @@ class CourtsViewModel @Inject constructor(
             _uiState.collect { updateFilteredCourts() }
         }
         viewModelScope.launch {
-            locationManager.currentLocation.collect { latLng ->
+            locationRepository.currentLocation.collect { latLng ->
                 currLocation = latLng?.let { LatLng(it.latitude, it.longitude) } ?: currLocation
             }
         }

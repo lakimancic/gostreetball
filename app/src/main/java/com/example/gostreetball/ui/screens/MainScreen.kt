@@ -151,7 +151,8 @@ fun MainScreen(
                 navigateToAdd = { navHostController.navigate(Screens.AddCourtScreen.name) },
                 navigateToFilter = { navHostController.navigate(Screens.FilterScreen.name) },
                 navigateToCourt = { navHostController.navigate("${Screens.CourtScreen}/$it")},
-                courtsViewModel = courtsViewModel
+                courtsViewModel = courtsViewModel,
+                isTrackingOn = isTrackingOn
             )
             1 -> CourtsScreen(
                 modifier = modifier.padding(innerPadding),

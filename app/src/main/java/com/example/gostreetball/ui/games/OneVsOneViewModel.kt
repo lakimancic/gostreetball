@@ -38,8 +38,8 @@ class OneVsOneViewModel @Inject constructor(
     fun twoPointer() {
         _uiState.update { current ->
             val updatedState = when (current.playerWithBall) {
-                0 -> current.copy(scoreA = current.scoreA + 2)
-                1 -> current.copy(scoreB = current.scoreB + 2)
+                0 -> current.copy(scoreA = current.scoreA + 1)
+                1 -> current.copy(scoreB = current.scoreB + 1)
                 else -> current
             }
 
@@ -60,8 +60,8 @@ class OneVsOneViewModel @Inject constructor(
     fun threePointer() {
         _uiState.update { current ->
             val updatedState = when (current.playerWithBall) {
-                0 -> current.copy(scoreA = current.scoreA + 3)
-                1 -> current.copy(scoreB = current.scoreB + 3)
+                0 -> current.copy(scoreA = current.scoreA + 2)
+                1 -> current.copy(scoreB = current.scoreB + 2)
                 else -> current
             }
 

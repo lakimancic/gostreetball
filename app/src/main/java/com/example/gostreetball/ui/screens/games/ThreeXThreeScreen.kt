@@ -206,10 +206,10 @@ fun ThreeXThreeScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Button(onClick = { viewModel.threePointer() }, modifier = Modifier.weight(1f)) {
-                        Text("Score 1")
+                        Text("Three-pointer")
                     }
                     Button(onClick = { viewModel.twoPointer() }, modifier = Modifier.weight(1f)) {
-                        Text("Score 2")
+                        Text("Two-pointer")
                     }
                 }
 

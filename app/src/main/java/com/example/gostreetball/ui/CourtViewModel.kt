@@ -1,17 +1,13 @@
 package com.example.gostreetball.ui
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.gostreetball.data.model.BoardType
 import com.example.gostreetball.data.model.Court
-import com.example.gostreetball.data.model.CourtType
 import com.example.gostreetball.data.model.Game
 import com.example.gostreetball.data.repo.CourtRepository
 import com.example.gostreetball.data.repo.GameRepository
 import com.example.gostreetball.data.repo.UserRepository
-import com.example.gostreetball.location.LocationManager
-import com.google.android.gms.maps.model.LatLng
+import com.example.gostreetball.location.LocationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,7 +27,7 @@ data class SCourtUiState (
 
 @HiltViewModel
 class CourtViewModel @Inject constructor(
-    private val locationManager: LocationManager,
+    private val locationRepository: LocationRepository,
     private val courtRepository: CourtRepository,
     private val userRepository: UserRepository,
     private val gameRepository: GameRepository
@@ -50,7 +46,7 @@ class CourtViewModel @Inject constructor(
 
             result.fold(
                 onSuccess = { (court, hasReviewed) ->
-                    val userLocation = locationManager.currentLocation.value
+                    val userLocation = locationRepository.currentLocation.value
                     val canJoin = if (userLocation != null && court.location != null) {
                         isUserNearCourt(
                             userLocation.latitude,

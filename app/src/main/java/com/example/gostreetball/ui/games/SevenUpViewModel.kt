@@ -41,7 +41,7 @@ class SevenUpViewModel @Inject constructor(
 
     val playersOnCourt: StateFlow<List<Pair<User, CourtPosition>>> = uiState.map { state ->
         val alivePlayers = state.players.filterIndexed { index, _ ->
-            index !in state.playerOrders.map { state.players.indexOf(it) }
+            state.scores[index] < 7
         }
 
         val offsets = when (alivePlayers.size) {
@@ -60,6 +60,18 @@ class SevenUpViewModel @Inject constructor(
         scope = viewModelScope,
         started = SharingStarted.Lazily,
         initialValue = emptyList()
+    )
+
+    val playerIndexOnCourt: StateFlow<Int> = uiState.map { state ->
+        val beforeDead = state.scores.filterIndexed { index, _ ->
+            index <= state.playerWithBall
+        }.count { s -> s >= 7 }
+
+        state.playerWithBall - beforeDead
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = -1
     )
 
     fun hitShot() {
@@ -85,9 +97,6 @@ class SevenUpViewModel @Inject constructor(
             if (playerCount == 0) return@update current
 
             val scores = current.scores.toMutableList()
-            if (scores.size < playerCount) {
-                scores.addAll(List(playerCount - scores.size) { 0 })
-            }
 
             scores[current.playerWithBall] += current.accumulated
 
@@ -129,9 +138,8 @@ class SevenUpViewModel @Inject constructor(
         val playerCount = players.size
         var next = (state.playerWithBall + 1) % playerCount
 
-        while (state.playerOrders.contains(players[next])) {
+        while (state.scores[next] >= 7) {
             next = (next + 1) % playerCount
-            if (state.playerOrders.size == playerCount - 1) break
         }
 
         return next
