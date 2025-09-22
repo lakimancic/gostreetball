@@ -6,6 +6,11 @@ import kotlin.math.sqrt
 
 @Singleton
 class EloSystem {
+    companion object {
+        const val MIN_RATING = 300.0
+        const val K_BASE_MULTIPLIER = 5.0
+    }
+
     private fun pWin(ra: Double, rb: Double): Double {
         return 1.0 / (1.0 + 10.0.pow((rb - ra) / 400.0))
     }
@@ -24,12 +29,12 @@ class EloSystem {
         kBase: Double,
     ): List<Double> {
         val n = ratings.size
-        val kEff = kBase * sqrt((n - 1).toDouble())
+        val kEff = kBase * K_BASE_MULTIPLIER * sqrt((n - 1).toDouble())
         return ratings.mapIndexed { i, ri ->
             val others = ratings.filterIndexed { j, _ -> j != i }
             val ei = expectedScore(ri, others)
             val si = actualScore(ranks[i], n)
-            maxOf(ri + kEff * (si - ei), 300.0)
+            maxOf(ri + kEff * (si - ei), MIN_RATING)
         }
     }
 
@@ -48,16 +53,16 @@ class EloSystem {
 
         val (sA, sB) = if (winner == 0) 1.0 to 0.0 else 0.0 to 1.0
 
-        var dA = kBase * (sA - pA)
-        var dB = kBase * (sB - pB)
+        var dA = kBase * K_BASE_MULTIPLIER * (sA - pA)
+        var dB = kBase * K_BASE_MULTIPLIER * (sB - pB)
 
         if (splitChange) {
             dA /= ratingsTeamA.size
             dB /= ratingsTeamB.size
         }
 
-        val newTeamA = ratingsTeamA.map { maxOf(it + dA, 300.0) }
-        val newTeamB = ratingsTeamB.map { maxOf(it + dB, 300.0) }
+        val newTeamA = ratingsTeamA.map { maxOf(it + dA, MIN_RATING) }
+        val newTeamB = ratingsTeamB.map { maxOf(it + dB, MIN_RATING) }
 
         return newTeamA to newTeamB
     }

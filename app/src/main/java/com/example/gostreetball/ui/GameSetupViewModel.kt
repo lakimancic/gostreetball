@@ -207,11 +207,12 @@ class GameSetupViewModel @Inject constructor(
             onChange = { invites ->
                 val acceptedIds = invites.filter { it.status == InviteStatus.ACCEPTED }.map { it.toUserId }
                 val rejectedIds = invites.filter { it.status == InviteStatus.REJECTED }.map { it.toUserId }
+                val pendingIds = invites.filter { it.status == InviteStatus.PENDING }.map { it.toUserId }
 
                 _uiState.update { current ->
                     current.copy(
-                        playersA = current.playersA.updateAcceptanceAndClean(acceptedIds, rejectedIds),
-                        playersB = current.playersB.updateAcceptanceAndClean(acceptedIds, rejectedIds),
+                        playersA = current.playersA.updateAcceptanceAndClean(acceptedIds, rejectedIds, pendingIds),
+                        playersB = current.playersB.updateAcceptanceAndClean(acceptedIds, rejectedIds, pendingIds),
                         error = null
                     )
                 }
@@ -325,9 +326,16 @@ private fun GameSetupUiState.cleanColumns(activeUsers: List<User>): GameSetupUiS
 
 private fun List<Pair<String, Boolean>>.updateAcceptanceAndClean(
     acceptedIds: List<String>,
-    rejectedIds: List<String>
+    rejectedIds: List<String>,
+    pendingIds: List<String>
 ): List<Pair<String, Boolean>> {
     return this
-        .filterNot { (id, _) -> rejectedIds.contains(id) }
-        .map { (id, _) -> id to acceptedIds.contains(id) }
+        .mapNotNull { (id, _) ->
+            when {
+                acceptedIds.contains(id) -> id to true
+                pendingIds.contains(id) -> id to false
+                rejectedIds.contains(id) -> null
+                else -> id to false
+            }
+        }
 }

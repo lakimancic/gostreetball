@@ -15,6 +15,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.tasks.await
 import com.google.firebase.firestore.Query
 import javax.inject.Inject
+import kotlin.math.roundToLong
 
 class GameRepository @Inject constructor(
     private val firestore: FirebaseFirestore,
@@ -117,7 +118,7 @@ class GameRepository @Inject constructor(
     ): ListenerRegistration {
         return firestore.collection("invites")
             .whereEqualTo("gameId", gameId)
-            .whereIn("status", listOf(InviteStatus.ACCEPTED.name, InviteStatus.REJECTED.name))
+//            .whereIn("status", listOf(InviteStatus.ACCEPTED.name, InviteStatus.REJECTED.name))
             .addSnapshotListener { snapshot, e ->
                 if (e != null) return@addSnapshotListener
                 if (snapshot != null) {
@@ -151,7 +152,7 @@ class GameRepository @Inject constructor(
                         .document(user.uid)
                         .update(
                             mapOf(
-                                "totalPoints" to (deltas[i].toLong()),
+                                "totalPoints" to (deltas[i].roundToLong()),
                                 "gamesPlayer" to (user.gamesPlayer + 1)
                             )
                         ).await()
@@ -181,7 +182,7 @@ class GameRepository @Inject constructor(
                         .document(user.uid)
                         .update(
                             mapOf(
-                                "totalPoints" to (newA[i].toLong()),
+                                "totalPoints" to (newA[i].roundToLong()),
                                 "gamesPlayer" to (user.gamesPlayer + 1)
                             )
                         ).await()
@@ -191,7 +192,7 @@ class GameRepository @Inject constructor(
                         .document(user.uid)
                         .update(
                             mapOf(
-                                "totalPoints" to (newB[i].toLong()),
+                                "totalPoints" to (newB[i].roundToLong()),
                                 "gamesPlayer" to (user.gamesPlayer + 1)
                             )
                         ).await()
