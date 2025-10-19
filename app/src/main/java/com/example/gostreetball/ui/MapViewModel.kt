@@ -22,4 +22,9 @@ class MapViewModel @Inject constructor(
     fun onLocationPermissionsGranted() {
         locationRepository.onPermissionsGranted()
     }
+
+    override fun onCleared() {
+        super.onCleared()
+        locationRepository.stopLocationUpdates()
+    }
 }

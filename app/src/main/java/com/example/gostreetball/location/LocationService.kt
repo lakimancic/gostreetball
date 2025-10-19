@@ -9,15 +9,12 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
-import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.example.gostreetball.data.local.AppPreferences
 import com.example.gostreetball.data.repo.CourtRepository
 import com.example.gostreetball.data.repo.UserRepository
 import com.example.gostreetball.utils.NotificationUtils
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.CancellationTokenSource
@@ -44,7 +41,6 @@ class LocationService : Service() {
     @Inject lateinit var userRepository: UserRepository
     @Inject lateinit var courtRepository: CourtRepository
     @Inject lateinit var locationRepository: LocationRepository
-    @Inject lateinit var fusedLocationClient: FusedLocationProviderClient
     @Inject lateinit var preferences: AppPreferences
 
     companion object {
@@ -93,26 +89,10 @@ class LocationService : Service() {
         if (!hasPermissions)
             return
 
-        val tokenSource = CancellationTokenSource()
-        fusedLocationClient
-            .getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, tokenSource.token)
-            .addOnSuccessListener { current ->
-                if (current != null) {
-                    val lat = current.latitude
-                    val lng = current.longitude
-
-                    locationRepository.updateLocation(LatLng(lat, lng))
-
-                    val now = System.currentTimeMillis()
-                    if (now - lastUpdateTime >= 30_000L) {
-                        triggerLocationCheck(lat, lng)
-                        lastUpdateTime = now
-                    }
-                } else {
-                    Log.w("LocationService", "Could not obtain current location.")
-                }
-            }
-            .addOnFailureListener { e -> Log.e("LocationService", "getCurrentLocation failed", e) }
+        val location = locationRepository.currentLocation.value
+        if (location != null) {
+            triggerLocationCheck(location.latitude, location.longitude)
+        }
     }
 
     private fun triggerLocationCheck(lat: Double, lng: Double) {
